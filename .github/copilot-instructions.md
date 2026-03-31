@@ -11,7 +11,6 @@ Four-project .NET 10 solution (`LoreLoom.slnx`):
 - **LoreLoom.Core** — Shared library: EF Core models, DTOs (records), enums, game engine (`TurnManager`, `ContextBuilder`, `ResourceTracker`), and `ILlmService`/`GroqLlmService`.
 - **LoreLoom.Api** — ASP.NET Core REST API. Thin controllers that delegate to Core. Serves the Blazor WASM client as static files. Auto-runs EF Core migrations on startup. JWT authentication. Deployed to Azure App Service.
 - **LoreLoom.Web** — Blazor WebAssembly client with MudBlazor. Consumes the API via REST (`LoreLoomApiClient`). Hosted from the same App Service as the API. Custom `AuthService` (extends `AuthenticationStateProvider`) manages JWT in localStorage.
-- **LoreLoom.Cli** — Legacy Spectre.Console terminal client (being phased out in favour of the web client).
 
 ### Hosting model
 
@@ -53,7 +52,7 @@ There is no test project yet.
 - JWT-based. Login/register return a JWT in `AuthResponse.Jwt`.
 - JWT claims include: `sub` (account ID), `email`, `name` (username), `account_token` (opaque internal token).
 - The web client stores the JWT in `localStorage` and sends it via `Authorization: Bearer` header.
-- Controllers extract user identity from JWT claims via `ClaimsExtensions` (`GetAccountToken()`, `GetUsername()`), with fallback to body tokens for CLI backward compatibility.
+- Controllers extract user identity from JWT claims via `ClaimsExtensions` (`GetAccountToken()`, `GetUsername()`).
 - Passwords hashed with PBKDF2-SHA256 (100K iterations).
 
 ## Configuration

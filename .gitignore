@@ -7,4 +7,3 @@ obj/
 *.user
 appsettings.Development.json
 .claude/
-loreloom-*.md

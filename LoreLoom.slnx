@@ -1,7 +1,6 @@
 <Solution>
   <Folder Name="/src/">
     <Project Path="src/LoreLoom.Api/LoreLoom.Api.csproj" />
-    <Project Path="src/LoreLoom.Cli/LoreLoom.Cli.csproj" />
     <Project Path="src/LoreLoom.Core/LoreLoom.Core.csproj" />
     <Project Path="src/LoreLoom.Web/LoreLoom.Web.csproj" />
   </Folder>
