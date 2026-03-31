@@ -10,7 +10,7 @@ var config = AppConfig.Load();
 if (!string.IsNullOrWhiteSpace(config.Language))
     SetCulture(config.Language);
 
-var baseUrl = Environment.GetEnvironmentVariable("LORELOOM_API_URL") ?? "http://localhost:5000";
+var baseUrl = Environment.GetEnvironmentVariable("LORELOOM_API_URL") ?? "https://loreloom-api-dbhtdpb3f0a8cgeb.spaincentral-01.azurewebsites.net"; //"https://localhost:5000";
 var api = new ApiClient(baseUrl);
 
 try
