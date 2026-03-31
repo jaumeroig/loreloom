@@ -1,0 +1,50 @@
+@page "/ranking"
+@inject LoreLoomApiClient Api
+@inject ISnackbar Snackbar
+
+<MudText Typo="Typo.h4" Class="mb-4">🏆 Global Ranking</MudText>
+
+@if (_loading)
+{
+    <MudProgressLinear Indeterminate="true" Color="Color.Primary" />
+}
+else if (_ranking.Count == 0)
+{
+    <MudAlert Severity="Severity.Info">No rankings yet. Play a game to appear here!</MudAlert>
+}
+else
+{
+    <MudTable Items="_ranking" Hover="true" Elevation="2" Dense="true">
+        <HeaderContent>
+            <MudTh>Rank</MudTh>
+            <MudTh>Player</MudTh>
+            <MudTh>Character</MudTh>
+            <MudTh>Points</MudTh>
+            <MudTh>Games</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd>
+                @if (context.Rank == 1) { <MudText Color="Color.Warning"><b>🥇 @context.Rank</b></MudText> }
+                else if (context.Rank == 2) { <MudText Style="color:#aaa;"><b>🥈 @context.Rank</b></MudText> }
+                else if (context.Rank == 3) { <MudText Color="Color.Warning"><b>🥉 @context.Rank</b></MudText> }
+                else { <MudText>@context.Rank</MudText> }
+            </MudTd>
+            <MudTd><b>@context.PlayerName</b></MudTd>
+            <MudTd>@(context.CharacterName ?? "—")</MudTd>
+            <MudTd>@context.TotalPoints</MudTd>
+            <MudTd>@context.GamesPlayed</MudTd>
+        </RowTemplate>
+    </MudTable>
+}
+
+@code {
+    private List<RankingEntry> _ranking = [];
+    private bool _loading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try { _ranking = await Api.GetRankingAsync(); }
+        catch (Exception ex) { Snackbar.Add($"Error: {ex.Message}", Severity.Error); }
+        finally { _loading = false; }
+    }
+}

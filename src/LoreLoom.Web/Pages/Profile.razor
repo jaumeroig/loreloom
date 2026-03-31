@@ -1,0 +1,57 @@
+@page "/profile"
+@inject AuthService Auth
+@inject ISnackbar Snackbar
+
+<MudText Typo="Typo.h4" Class="mb-4">Profile</MudText>
+
+<MudGrid>
+    <MudItem xs="12" sm="6">
+        <MudCard>
+            <MudCardContent>
+                <MudText Typo="Typo.h6" Class="mb-4">Account</MudText>
+                <MudTextField Value="@Auth.Username" Label="Username" ReadOnly="true"
+                              Variant="Variant.Outlined" Class="mb-3" />
+                <MudTextField Value="@Auth.Email" Label="Email" ReadOnly="true"
+                              Variant="Variant.Outlined" Class="mb-3" />
+            </MudCardContent>
+        </MudCard>
+    </MudItem>
+
+    <MudItem xs="12" sm="6">
+        <MudCard>
+            <MudCardContent>
+                <MudText Typo="Typo.h6" Class="mb-4">Preferences</MudText>
+                <MudSelect T="string" @bind-Value="_language" Label="Game Language"
+                           Variant="Variant.Outlined" Class="mb-3"
+                           AnchorOrigin="Origin.BottomCenter">
+                    <MudSelectItem Value="@("English")">English</MudSelectItem>
+                    <MudSelectItem Value="@("Català")">Català</MudSelectItem>
+                    <MudSelectItem Value="@("Español")">Español</MudSelectItem>
+                    <MudSelectItem Value="@("Français")">Français</MudSelectItem>
+                    <MudSelectItem Value="@("Deutsch")">Deutsch</MudSelectItem>
+                    <MudSelectItem Value="@("Italiano")">Italiano</MudSelectItem>
+                    <MudSelectItem Value="@("Português")">Português</MudSelectItem>
+                    <MudSelectItem Value="@("日本語")">日本語</MudSelectItem>
+                </MudSelect>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SavePreferences">
+                    Save Preferences
+                </MudButton>
+            </MudCardContent>
+        </MudCard>
+    </MudItem>
+</MudGrid>
+
+@code {
+    private string _language = "English";
+
+    protected override void OnInitialized()
+    {
+        _language = Auth.Language;
+    }
+
+    private async Task SavePreferences()
+    {
+        await Auth.SetLanguageAsync(_language);
+        Snackbar.Add("Preferences saved.", Severity.Success);
+    }
+}

@@ -1,5 +1,6 @@
 using System.Security.Cryptography;
 using System.Text;
+using LoreLoom.Api.Services;
 using LoreLoom.Core.Data;
 using LoreLoom.Core.Dtos;
 using LoreLoom.Core.Models;
@@ -10,18 +11,21 @@ namespace LoreLoom.Api.Controllers;
 
 [ApiController]
 [Route("[controller]")]
-public class AuthController(LoreLoomDbContext db) : ControllerBase
+public class AuthController(LoreLoomDbContext db, JwtService jwtService) : ControllerBase
 {
     [HttpPost("register")]
     public async Task<ActionResult<AuthResponse>> Register(RegisterRequest request)
     {
-        var exists = await db.Accounts.AnyAsync(a => a.Username == request.Username);
-        if (exists)
+        if (await db.Accounts.AnyAsync(a => a.Email == request.Email))
+            return Conflict("Email already registered.");
+
+        if (await db.Accounts.AnyAsync(a => a.Username == request.Username))
             return Conflict("Username already taken.");
 
         var account = new Account
         {
             Id = Guid.NewGuid(),
+            Email = request.Email,
             Username = request.Username,
             PasswordHash = HashPassword(request.Password)
         };
@@ -29,20 +33,23 @@ public class AuthController(LoreLoomDbContext db) : ControllerBase
         db.Accounts.Add(account);
         await db.SaveChangesAsync();
 
-        return CreatedAtAction(nameof(Register), new AuthResponse(account.Username, account.Token));
+        var jwt = jwtService.GenerateToken(account);
+        return CreatedAtAction(nameof(Register),
+            new AuthResponse(account.Username, account.Email, account.Token, jwt));
     }
 
     [HttpPost("login")]
     public async Task<ActionResult<AuthResponse>> Login(LoginRequest request)
     {
-        var account = await db.Accounts.FirstOrDefaultAsync(a => a.Username == request.Username);
+        var account = await db.Accounts.FirstOrDefaultAsync(a => a.Email == request.Email);
         if (account is null)
-            return Unauthorized("Invalid username or password.");
+            return Unauthorized("Invalid email or password.");
 
         if (!VerifyPassword(request.Password, account.PasswordHash))
-            return Unauthorized("Invalid username or password.");
+            return Unauthorized("Invalid email or password.");
 
-        return new AuthResponse(account.Username, account.Token);
+        var jwt = jwtService.GenerateToken(account);
+        return new AuthResponse(account.Username, account.Email, account.Token, jwt);
     }
 
     private static string HashPassword(string password)

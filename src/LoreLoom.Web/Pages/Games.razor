@@ -1,0 +1,222 @@
+@page "/games"
+@inject LoreLoomApiClient Api
+@inject AuthService Auth
+@inject NavigationManager Nav
+@inject ISnackbar Snackbar
+
+<MudText Typo="Typo.h4" Class="mb-4">Games</MudText>
+
+<div class="d-flex gap-4 mb-4">
+    <MudButton Variant="Variant.Filled" Color="Color.Primary" Href="/games/create"
+               StartIcon="@Icons.Material.Filled.Add">Create Game</MudButton>
+    <MudButton Variant="Variant.Outlined" Color="Color.Secondary" OnClick="ShowJoinByCode"
+               StartIcon="@Icons.Material.Filled.VpnKey">Join by Invite Code</MudButton>
+</div>
+
+<MudTabs Elevation="0" Rounded="true" ApplyEffectsToContainer="true" Class="mb-4">
+    <MudTabPanel Text="Open Games">
+        @if (_loadingOpen)
+        {
+            <MudProgressLinear Indeterminate="true" Color="Color.Primary" Class="mt-2" />
+        }
+        else if (_openGames.Count == 0)
+        {
+            <MudAlert Severity="Severity.Info" Class="mt-2">No open games right now. Create one!</MudAlert>
+        }
+        else
+        {
+            <MudGrid Class="mt-2">
+                @foreach (var g in _openGames)
+                {
+                    <MudItem xs="12" sm="6" md="4">
+                        <MudCard Elevation="2">
+                            <MudCardHeader>
+                                <MudText Typo="Typo.h6">@g.Title</MudText>
+                            </MudCardHeader>
+                            <MudCardContent>
+                                <MudText Typo="Typo.body2" Style="color: #ffffffa0;" Class="mb-2">@g.Setting</MudText>
+                                <div class="d-flex gap-2 mb-2">
+                                    <MudChip T="string" Size="Size.Small" Color="Color.Info">
+                                        @g.PlayerCount / @g.MaxPlayers players
+                                    </MudChip>
+                                    <MudChip T="string" Size="Size.Small" Color="Color.Secondary">
+                                        @g.ResourceName
+                                    </MudChip>
+                                </div>
+                            </MudCardContent>
+                            <MudCardActions>
+                                @if (g.Players.Any(p => p.Name == Auth.Username))
+                                {
+                                    <MudButton Variant="Variant.Text" Color="Color.Primary"
+                                               OnClick="() => GoToGame(g)">
+                                        Continue
+                                    </MudButton>
+                                }
+                                else if (g.PlayerCount < g.MaxPlayers)
+                                {
+                                    <MudButton Variant="Variant.Filled" Color="Color.Primary"
+                                               OnClick="() => JoinGameAsync(g.Id)">
+                                        Join
+                                    </MudButton>
+                                }
+                                else
+                                {
+                                    <MudChip T="string" Size="Size.Small" Color="Color.Default">Full</MudChip>
+                                }
+                            </MudCardActions>
+                        </MudCard>
+                    </MudItem>
+                }
+            </MudGrid>
+        }
+    </MudTabPanel>
+
+    <MudTabPanel Text="My Active Games">
+        @if (_loadingActive)
+        {
+            <MudProgressLinear Indeterminate="true" Color="Color.Primary" Class="mt-2" />
+        }
+        else if (_myActiveGames.Count == 0)
+        {
+            <MudAlert Severity="Severity.Info" Class="mt-2">No active games.</MudAlert>
+        }
+        else
+        {
+            <MudGrid Class="mt-2">
+                @foreach (var g in _myActiveGames)
+                {
+                    <MudItem xs="12" sm="6" md="4">
+                        <MudCard Elevation="2">
+                            <MudCardHeader>
+                                <MudText Typo="Typo.h6">@g.Title</MudText>
+                            </MudCardHeader>
+                            <MudCardContent>
+                                <MudText Typo="Typo.body2" Style="color: #ffffffa0;" Class="mb-2">@g.Setting</MudText>
+                                <div class="d-flex gap-2 mb-2">
+                                    <MudChip T="string" Size="Size.Small" Color="Color.Info">
+                                        @g.PlayerCount players
+                                    </MudChip>
+                                    <MudChip T="string" Size="Size.Small"
+                                             Color="@(g.Status == GameStatus.Active ? Color.Success : Color.Default)">
+                                        @g.Status
+                                    </MudChip>
+                                </div>
+                                @if (g.Status == GameStatus.Active)
+                                {
+                                    <MudProgressLinear Value="@g.ResourcePct" Color="@ResourceColor(g.ResourcePct)" Class="mt-1" />
+                                    <MudText Typo="Typo.caption">@g.ResourceName: @g.ResourcePct%</MudText>
+                                }
+                            </MudCardContent>
+                            <MudCardActions>
+                                <MudButton Variant="Variant.Filled" Color="Color.Primary"
+                                           OnClick="() => GoToGame(g)">
+                                    @(g.Status == GameStatus.Active ? "Play" : g.Status == GameStatus.Finished ? "Results" : "Lobby")
+                                </MudButton>
+                            </MudCardActions>
+                        </MudCard>
+                    </MudItem>
+                }
+            </MudGrid>
+        }
+    </MudTabPanel>
+</MudTabs>
+
+@* Join by Invite Code Dialog *@
+<MudDialog @bind-Visible="_showJoinByCode">
+    <TitleContent>
+        <MudText Typo="Typo.h6">Join by Invite Code</MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudTextField @bind-Value="_inviteCode" Label="Invite Code" Variant="Variant.Outlined"
+                      Placeholder="e.g. A3BK7Z" />
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="() => _showJoinByCode = false">Cancel</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="JoinByCodeAsync"
+                   Disabled="@string.IsNullOrWhiteSpace(_inviteCode)">Join</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    private List<GameResponse> _openGames = [];
+    private List<GameResponse> _myActiveGames = [];
+    private bool _loadingOpen = true;
+    private bool _loadingActive = true;
+    private bool _showJoinByCode;
+    private string _inviteCode = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Task.WhenAll(LoadOpenGamesAsync(), LoadMyGamesAsync());
+    }
+
+    private async Task LoadOpenGamesAsync()
+    {
+        _loadingOpen = true;
+        try { _openGames = await Api.ListGamesAsync("Waiting", true); }
+        catch (Exception ex) { Snackbar.Add($"Error: {ex.Message}", Severity.Error); }
+        finally { _loadingOpen = false; }
+    }
+
+    private async Task LoadMyGamesAsync()
+    {
+        _loadingActive = true;
+        try
+        {
+            var all = await Api.ListGamesAsync();
+            _myActiveGames = all
+                .Where(g => g.Players.Any(p => p.Name == Auth.Username))
+                .OrderByDescending(g => g.CreatedAt)
+                .ToList();
+        }
+        catch (Exception ex) { Snackbar.Add($"Error: {ex.Message}", Severity.Error); }
+        finally { _loadingActive = false; }
+    }
+
+    private async Task JoinGameAsync(Guid gameId)
+    {
+        try
+        {
+            var request = new JoinGameRequest(Auth.AccountToken ?? "", Auth.Username ?? "", null, null);
+            await Api.JoinGameAsync(gameId, request);
+            Snackbar.Add("Joined!", Severity.Success);
+            Nav.NavigateTo($"/games/{gameId}/lobby");
+        }
+        catch (Exception ex) { Snackbar.Add($"Error: {ex.Message}", Severity.Error); }
+    }
+
+    private void ShowJoinByCode() => _showJoinByCode = true;
+
+    private async Task JoinByCodeAsync()
+    {
+        try
+        {
+            // Find game by invite code from all games
+            var all = await Api.ListGamesAsync("Waiting");
+            var game = all.FirstOrDefault(g => g.InviteCode == _inviteCode.Trim().ToUpper());
+            if (game is null)
+            {
+                Snackbar.Add("Game not found with that invite code.", Severity.Warning);
+                return;
+            }
+            var request = new JoinGameRequest(Auth.AccountToken ?? "", Auth.Username ?? "", null, _inviteCode.Trim().ToUpper());
+            await Api.JoinGameAsync(game.Id, request);
+            Snackbar.Add("Joined!", Severity.Success);
+            _showJoinByCode = false;
+            Nav.NavigateTo($"/games/{game.Id}/lobby");
+        }
+        catch (Exception ex) { Snackbar.Add($"Error: {ex.Message}", Severity.Error); }
+    }
+
+    private void GoToGame(GameResponse g)
+    {
+        if (g.Status == GameStatus.Finished)
+            Nav.NavigateTo($"/games/{g.Id}/result");
+        else if (g.Status == GameStatus.Active)
+            Nav.NavigateTo($"/games/{g.Id}");
+        else
+            Nav.NavigateTo($"/games/{g.Id}/lobby");
+    }
+
+    private static Color ResourceColor(int pct) => pct > 60 ? Color.Success : pct > 30 ? Color.Warning : Color.Error;
+}

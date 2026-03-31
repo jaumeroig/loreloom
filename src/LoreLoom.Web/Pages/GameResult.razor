@@ -1,0 +1,90 @@
+@page "/games/{GameId:guid}/result"
+@inject LoreLoomApiClient Api
+@inject ISnackbar Snackbar
+@inject IJSRuntime Js
+
+<MudText Typo="Typo.h4" Class="mb-4">Game Results</MudText>
+
+@if (_loading)
+{
+    <MudProgressLinear Indeterminate="true" Color="Color.Primary" />
+}
+else if (_result is null)
+{
+    <MudAlert Severity="Severity.Warning">Results not available yet.</MudAlert>
+}
+else
+{
+    <MudCard Class="mb-4">
+        <MudCardHeader>
+            <MudText Typo="Typo.h5">
+                @(_result.Victory ? "🎉 Victory!" : "💀 Defeat!")
+                — @_result.GameTitle
+            </MudText>
+        </MudCardHeader>
+        <MudCardContent>
+            @if (!string.IsNullOrEmpty(_result.Postmortem))
+            {
+                <MudText Typo="Typo.body1" Class="mb-4" Style="font-style:italic;color:#ffffffa0;">
+                    @_result.Postmortem
+                </MudText>
+            }
+
+            <MudTable Items="_result.Players" Hover="true" Elevation="0">
+                <HeaderContent>
+                    <MudTh>Player</MudTh>
+                    <MudTh>Character</MudTh>
+                    <MudTh>Level</MudTh>
+                    <MudTh>XP Earned</MudTh>
+                    <MudTh>Points</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd><b>@context.Name</b></MudTd>
+                    <MudTd>@(context.CharacterName ?? "—")</MudTd>
+                    <MudTd>@(context.CharacterLevel?.ToString() ?? "—")</MudTd>
+                    <MudTd>@context.XpEarned</MudTd>
+                    <MudTd>@context.PointsEarned</MudTd>
+                </RowTemplate>
+            </MudTable>
+        </MudCardContent>
+        <MudCardActions Class="pa-4">
+            <MudButton Variant="Variant.Outlined" Color="Color.Secondary" OnClick="ExportAsync"
+                       StartIcon="@Icons.Material.Filled.Download">
+                Export Chronicle
+            </MudButton>
+            <MudButton Variant="Variant.Text" Href="/games">Back to Games</MudButton>
+        </MudCardActions>
+    </MudCard>
+}
+
+@code {
+    [Parameter] public Guid GameId { get; set; }
+
+    private GameResultResponse? _result;
+    private bool _loading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try { _result = await Api.GetResultAsync(GameId); }
+        catch (Exception ex) { Snackbar.Add($"Error: {ex.Message}", Severity.Error); }
+        finally { _loading = false; }
+    }
+
+    private async Task ExportAsync()
+    {
+        try
+        {
+            var markdown = await Api.ExportGameAsync(GameId);
+            if (markdown is null) { Snackbar.Add("Export not available.", Severity.Warning); return; }
+
+            // Trigger download via JS
+            var bytes = System.Text.Encoding.UTF8.GetBytes(markdown);
+            var base64 = Convert.ToBase64String(bytes);
+            var fileName = $"loreloom-{_result?.GameTitle?.Replace(" ", "-").ToLower() ?? GameId.ToString()[..8]}.md";
+            await Js.InvokeVoidAsync("eval",
+                $"var a=document.createElement('a');a.href='data:text/markdown;base64,{base64}';a.download='{fileName}';a.click();");
+            Snackbar.Add("Chronicle exported!", Severity.Success);
+        }
+        catch (Exception ex) { Snackbar.Add($"Error: {ex.Message}", Severity.Error); }
+    }
+}

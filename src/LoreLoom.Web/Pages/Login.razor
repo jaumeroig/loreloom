@@ -1,0 +1,70 @@
+@page "/login"
+@inject LoreLoomApiClient Api
+@inject AuthService Auth
+@inject NavigationManager Nav
+@inject ISnackbar Snackbar
+
+<div class="hero-section">
+    <MudCard Style="width: 400px; max-width: 95vw;">
+        <MudCardHeader>
+            <MudText Typo="Typo.h5" Color="Color.Primary">🎲 Log In</MudText>
+        </MudCardHeader>
+        <MudCardContent>
+            <MudTextField @bind-Value="_email" Label="Email" Variant="Variant.Outlined"
+                          InputType="InputType.Email" Class="mb-3" Required="true" />
+            <MudTextField @bind-Value="_password" Label="Password" Variant="Variant.Outlined"
+                          InputType="InputType.Password" Class="mb-3" Required="true"
+                          OnKeyDown="OnKeyDown" />
+        </MudCardContent>
+        <MudCardActions Class="d-flex flex-column pa-4">
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth="true"
+                       OnClick="LoginAsync" Disabled="_loading">
+                @if (_loading) { <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" /> }
+                Log In
+            </MudButton>
+            <MudText Typo="Typo.body2" Class="mt-3" Align="Align.Center">
+                Don't have an account?
+                <MudLink Href="/register" Color="Color.Secondary">Sign up</MudLink>
+            </MudText>
+        </MudCardActions>
+    </MudCard>
+</div>
+
+@code {
+    private string _email = "";
+    private string _password = "";
+    private bool _loading;
+
+    private async Task OnKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter") await LoginAsync();
+    }
+
+    private async Task LoginAsync()
+    {
+        if (string.IsNullOrWhiteSpace(_email) || string.IsNullOrWhiteSpace(_password))
+        {
+            Snackbar.Add("Please fill in all fields.", Severity.Warning);
+            return;
+        }
+
+        _loading = true;
+        try
+        {
+            var result = await Api.LoginAsync(new LoginRequest(_email, _password));
+            if (result?.Jwt is not null)
+            {
+                await Auth.LoginAsync(result.Jwt, result.Username, result.Email, result.Token);
+                Nav.NavigateTo("/games");
+            }
+        }
+        catch (HttpRequestException ex)
+        {
+            Snackbar.Add(ex.Message.Contains("401") ? "Invalid email or password." : $"Error: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+}

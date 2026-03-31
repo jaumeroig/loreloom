@@ -41,44 +41,64 @@ public static class AuthScreen
                 continue;
             }
 
-            var username = AnsiConsole.Prompt(
-                new TextPrompt<string>($"[yellow]{Markup.Escape(Res.AuthUsername)}[/]:"));
-
-            var password = AnsiConsole.Prompt(
-                new TextPrompt<string>($"[yellow]{Markup.Escape(Res.AuthPassword)}[/]:")
-                    .Secret());
-
-            try
+            if (choice == Res.AuthRegister)
             {
-                AuthResponse? result;
+                var email = AnsiConsole.Prompt(
+                    new TextPrompt<string>($"[yellow]Email[/]:"));
 
-                if (choice == Res.AuthRegister)
+                var username = AnsiConsole.Prompt(
+                    new TextPrompt<string>($"[yellow]{Markup.Escape(Res.AuthUsername)}[/]:"));
+
+                var password = AnsiConsole.Prompt(
+                    new TextPrompt<string>($"[yellow]{Markup.Escape(Res.AuthPassword)}[/]:")
+                        .Secret());
+
+                try
                 {
-                    result = await api.Register(new RegisterRequest(username, password));
+                    var result = await api.Register(new RegisterRequest(email, username, password));
                     if (result is not null)
+                    {
                         AnsiConsole.MarkupLine($"[green]{Markup.Escape(string.Format(Res.AuthRegisterSuccess, result.Username))}[/]");
+                        config.PlayerToken = result.Token;
+                        config.Username = result.Username;
+                        config.Save();
+                        AnsiConsole.WriteLine();
+                        return (result.Token, result.Username);
+                    }
                 }
-                else
+                catch (HttpRequestException ex)
                 {
-                    result = await api.Login(new LoginRequest(username, password));
-                    if (result is not null)
-                        AnsiConsole.MarkupLine($"[green]{Markup.Escape(string.Format(Res.AuthLoginSuccess, result.Username))}[/]");
-                }
-
-                if (result is not null)
-                {
-                    config.PlayerToken = result.Token;
-                    config.Username = result.Username;
-                    config.Save();
-
+                    AnsiConsole.MarkupLine($"[red]{Markup.Escape(string.Format(Res.AuthError, ex.Message))}[/]");
                     AnsiConsole.WriteLine();
-                    return (result.Token, result.Username);
                 }
             }
-            catch (HttpRequestException ex)
+            else
             {
-                AnsiConsole.MarkupLine($"[red]{Markup.Escape(string.Format(Res.AuthError, ex.Message))}[/]");
-                AnsiConsole.WriteLine();
+                var email = AnsiConsole.Prompt(
+                    new TextPrompt<string>($"[yellow]Email[/]:"));
+
+                var password = AnsiConsole.Prompt(
+                    new TextPrompt<string>($"[yellow]{Markup.Escape(Res.AuthPassword)}[/]:")
+                        .Secret());
+
+                try
+                {
+                    var result = await api.Login(new LoginRequest(email, password));
+                    if (result is not null)
+                    {
+                        AnsiConsole.MarkupLine($"[green]{Markup.Escape(string.Format(Res.AuthLoginSuccess, result.Username))}[/]");
+                        config.PlayerToken = result.Token;
+                        config.Username = result.Username;
+                        config.Save();
+                        AnsiConsole.WriteLine();
+                        return (result.Token, result.Username);
+                    }
+                }
+                catch (HttpRequestException ex)
+                {
+                    AnsiConsole.MarkupLine($"[red]{Markup.Escape(string.Format(Res.AuthError, ex.Message))}[/]");
+                    AnsiConsole.WriteLine();
+                }
             }
         }
     }

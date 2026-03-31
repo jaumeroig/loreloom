@@ -1,4 +1,4 @@
-name: Deploy API to Azure
+name: Deploy to Azure
 
 on:
   workflow_dispatch:

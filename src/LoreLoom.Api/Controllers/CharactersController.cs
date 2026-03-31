@@ -1,3 +1,4 @@
+using LoreLoom.Api.Extensions;
 using LoreLoom.Core.Data;
 using LoreLoom.Core.Dtos;
 using LoreLoom.Core.Models;
@@ -17,10 +18,12 @@ public class CharactersController(LoreLoomDbContext db) : ControllerBase
         if (totalStats != 9)
             return BadRequest("Stats must sum to 9 at creation (distribute 9 points across Strength, Wit, Charisma with each between 1-5).");
 
+        var playerToken = this.GetAccountToken() ?? request.PlayerToken;
+
         var character = new Character
         {
             Id = Guid.NewGuid(),
-            PlayerToken = request.PlayerToken,
+            PlayerToken = playerToken,
             Name = request.Name,
             Backstory = request.Backstory,
             Strength = request.Strength,
@@ -32,6 +35,21 @@ public class CharactersController(LoreLoomDbContext db) : ControllerBase
         await db.SaveChangesAsync();
 
         return CreatedAtAction(nameof(GetByToken), new { token = character.PlayerToken }, ToResponse(character));
+    }
+
+    [HttpGet("me")]
+    public async Task<ActionResult<List<CharacterResponse>>> GetMine()
+    {
+        var accountToken = this.GetAccountToken();
+        if (string.IsNullOrEmpty(accountToken))
+            return Unauthorized();
+
+        var characters = await db.Characters
+            .Where(c => c.PlayerToken == accountToken)
+            .OrderByDescending(c => c.LastPlayedAt)
+            .ToListAsync();
+
+        return characters.Select(ToResponse).ToList();
     }
 
     [HttpGet("{token}")]

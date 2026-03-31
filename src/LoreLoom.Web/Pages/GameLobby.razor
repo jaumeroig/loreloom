@@ -1,0 +1,119 @@
+@page "/games/{GameId:guid}/lobby"
+@inject LoreLoomApiClient Api
+@inject AuthService Auth
+@inject NavigationManager Nav
+@inject ISnackbar Snackbar
+@implements IDisposable
+
+<MudText Typo="Typo.h4" Class="mb-4">Game Lobby</MudText>
+
+@if (_game is null)
+{
+    <MudProgressLinear Indeterminate="true" Color="Color.Primary" />
+}
+else
+{
+    <MudGrid>
+        <MudItem xs="12" md="8">
+            <MudCard>
+                <MudCardHeader>
+                    <MudText Typo="Typo.h5">@_game.Title</MudText>
+                </MudCardHeader>
+                <MudCardContent>
+                    <MudText Typo="Typo.body1" Class="mb-3">@_game.Setting</MudText>
+
+                    <MudText Typo="Typo.subtitle2" Class="mb-2">
+                        Players (@_game.PlayerCount / @_game.MaxPlayers)
+                    </MudText>
+
+                    <MudList T="string" Dense="true">
+                        @foreach (var p in _game.Players)
+                        {
+                            <MudListItem T="string" Icon="@Icons.Material.Filled.Person">
+                                @p.Name
+                                @if (p.IsCurrentTurn) { <MudChip T="string" Size="Size.Small" Color="Color.Secondary">Creator</MudChip> }
+                            </MudListItem>
+                        }
+                    </MudList>
+
+                    @if (!_game.IsPublic && _game.InviteCode is not null)
+                    {
+                        <MudAlert Severity="Severity.Info" Class="mt-3">
+                            <b>Invite Code:</b> @_game.InviteCode — Share this with friends to let them join!
+                        </MudAlert>
+                    }
+
+                    @if (_game.Status == GameStatus.Active)
+                    {
+                        <MudAlert Severity="Severity.Success" Class="mt-3">Game has started!</MudAlert>
+                    }
+                </MudCardContent>
+                <MudCardActions Class="pa-4">
+                    @if (IsCreator && _game.Status == GameStatus.Waiting)
+                    {
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="StartGameAsync"
+                                   Disabled="_starting" StartIcon="@Icons.Material.Filled.PlayArrow">
+                            @if (_starting) { <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" /> }
+                            Start Game
+                        </MudButton>
+                    }
+                    else if (_game.Status == GameStatus.Waiting)
+                    {
+                        <MudText Typo="Typo.body2" Style="color:#ffffffa0;">
+                            Waiting for the creator to start the game...
+                        </MudText>
+                    }
+                </MudCardActions>
+            </MudCard>
+        </MudItem>
+    </MudGrid>
+}
+
+@code {
+    [Parameter] public Guid GameId { get; set; }
+
+    private GameResponse? _game;
+    private bool _starting;
+    private Timer? _pollTimer;
+
+    private bool IsCreator => _game?.Players.FirstOrDefault(p => p.IsCurrentTurn)?.Name == Auth.Username;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await RefreshAsync();
+        _pollTimer = new Timer(async _ =>
+        {
+            await RefreshAsync();
+            await InvokeAsync(StateHasChanged);
+        }, null, 3000, 3000);
+    }
+
+    private async Task RefreshAsync()
+    {
+        try
+        {
+            _game = await Api.GetGameAsync(GameId);
+            if (_game?.Status == GameStatus.Active)
+            {
+                _pollTimer?.Dispose();
+                Nav.NavigateTo($"/games/{GameId}");
+            }
+        }
+        catch { /* ignore polling errors */ }
+    }
+
+    private async Task StartGameAsync()
+    {
+        _starting = true;
+        try
+        {
+            var request = new StartGameRequest(Auth.AccountToken ?? "", Auth.Language);
+            await Api.StartGameAsync(GameId, request);
+            Nav.NavigateTo($"/games/{GameId}");
+        }
+        catch (Exception ex) { Snackbar.Add($"Error: {ex.Message}", Severity.Error); }
+        finally { _starting = false; }
+    }
+
+    public void Dispose() => _pollTimer?.Dispose();
+}

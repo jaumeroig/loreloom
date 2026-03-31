@@ -1,3 +1,4 @@
+using LoreLoom.Api.Extensions;
 using LoreLoom.Core.Data;
 using LoreLoom.Core.Dtos;
 using LoreLoom.Core.Engine;
@@ -45,6 +46,9 @@ public class GamesController(LoreLoomDbContext db, TurnManager turnManager) : Co
     [HttpPost]
     public async Task<ActionResult<GameResponse>> Create(CreateGameRequest request)
     {
+        var token = this.GetAccountToken() ?? request.CreatorToken;
+        var name = this.GetUsername() ?? request.CreatorName;
+
         var game = new Game
         {
             Id = Guid.NewGuid(),
@@ -60,8 +64,8 @@ public class GamesController(LoreLoomDbContext db, TurnManager turnManager) : Co
         {
             Id = Guid.NewGuid(),
             GameId = game.Id,
-            Name = request.CreatorName,
-            Token = request.CreatorToken,
+            Name = name,
+            Token = token,
             CharacterId = request.CharacterId,
             IsCurrentTurn = true
         };
@@ -91,15 +95,18 @@ public class GamesController(LoreLoomDbContext db, TurnManager turnManager) : Co
         if (!game.IsPublic && game.InviteCode != request.InviteCode)
             return BadRequest("Invalid invite code.");
 
-        if (game.Players.Any(p => p.Token == request.Token))
+        var token = this.GetAccountToken() ?? request.Token;
+        var name = this.GetUsername() ?? request.Name;
+
+        if (game.Players.Any(p => p.Token == token))
             return BadRequest("You are already in this game.");
 
         var player = new Player
         {
             Id = Guid.NewGuid(),
             GameId = game.Id,
-            Name = request.Name,
-            Token = request.Token,
+            Name = name,
+            Token = token,
             CharacterId = request.CharacterId
         };
 
@@ -121,8 +128,9 @@ public class GamesController(LoreLoomDbContext db, TurnManager turnManager) : Co
         if (game.Status != GameStatus.Waiting)
             return BadRequest("Game has already started or finished.");
 
+        var token = this.GetAccountToken() ?? request.Token;
         var creator = game.Players.FirstOrDefault(p => p.IsCurrentTurn);
-        if (creator is null || creator.Token != request.Token)
+        if (creator is null || creator.Token != token)
             return BadRequest("Only the game creator can start the game.");
 
         game.Status = GameStatus.Active;
@@ -142,7 +150,8 @@ public class GamesController(LoreLoomDbContext db, TurnManager turnManager) : Co
 
         if (game is null) return NotFound();
 
-        var player = game.Players.FirstOrDefault(p => p.Token == request.Token);
+        var token = this.GetAccountToken() ?? request.Token;
+        var player = game.Players.FirstOrDefault(p => p.Token == token);
         if (player is null)
             return BadRequest("You are not in this game.");
 

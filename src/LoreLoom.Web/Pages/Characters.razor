@@ -1,0 +1,138 @@
+@page "/characters"
+@inject LoreLoomApiClient Api
+@inject AuthService Auth
+@inject ISnackbar Snackbar
+
+<MudText Typo="Typo.h4" Class="mb-4">My Characters</MudText>
+
+<MudButton Variant="Variant.Filled" Color="Color.Primary" Class="mb-4"
+           OnClick="() => _showCreate = true" StartIcon="@Icons.Material.Filled.Add">
+    Create Character
+</MudButton>
+
+@if (_loading)
+{
+    <MudProgressLinear Indeterminate="true" Color="Color.Primary" />
+}
+else if (_characters.Count == 0)
+{
+    <MudAlert Severity="Severity.Info">You don't have any characters yet. Create one to get started!</MudAlert>
+}
+else
+{
+    <MudGrid>
+        @foreach (var c in _characters)
+        {
+            <MudItem xs="12" sm="6" md="4">
+                <MudCard Elevation="2">
+                    <MudCardHeader>
+                        <MudText Typo="Typo.h6">@c.Name</MudText>
+                    </MudCardHeader>
+                    <MudCardContent>
+                        @if (!string.IsNullOrEmpty(c.Backstory))
+                        {
+                            <MudText Typo="Typo.body2" Class="mb-3" Style="color: #ffffffa0;">@c.Backstory</MudText>
+                        }
+                        <div class="d-flex justify-space-between mb-2">
+                            <MudChip T="string" Color="Color.Error" Size="Size.Small">STR @c.Strength</MudChip>
+                            <MudChip T="string" Color="Color.Info" Size="Size.Small">WIT @c.Wit</MudChip>
+                            <MudChip T="string" Color="Color.Warning" Size="Size.Small">CHA @c.Charisma</MudChip>
+                        </div>
+                        <MudText Typo="Typo.body2">Level @c.Level — @c.Xp / @(c.Xp + c.XpToNextLevel) XP</MudText>
+                        <MudProgressLinear Value="@GetXpPercent(c)" Color="Color.Secondary" Class="mt-1" />
+                    </MudCardContent>
+                </MudCard>
+            </MudItem>
+        }
+    </MudGrid>
+}
+
+@* Create Character Dialog *@
+<MudDialog @bind-Visible="_showCreate">
+    <TitleContent>
+        <MudText Typo="Typo.h6">Create Character</MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudTextField @bind-Value="_newName" Label="Name" Variant="Variant.Outlined" Class="mb-3"
+                      Required="true" MaxLength="100" />
+        <MudTextField @bind-Value="_newBackstory" Label="Backstory (optional)" Variant="Variant.Outlined"
+                      Class="mb-3" Lines="3" />
+
+        <MudText Typo="Typo.subtitle2" Class="mb-2">
+            Stats (must sum to 9, each 1-5): currently @(_newStr + _newWit + _newCha)/9
+        </MudText>
+        <MudSlider @bind-Value="_newStr" Min="1" Max="5" Step="1" Color="Color.Error" Class="mb-2">
+            Strength: @_newStr
+        </MudSlider>
+        <MudSlider @bind-Value="_newWit" Min="1" Max="5" Step="1" Color="Color.Info" Class="mb-2">
+            Wit: @_newWit
+        </MudSlider>
+        <MudSlider @bind-Value="_newCha" Min="1" Max="5" Step="1" Color="Color.Warning" Class="mb-2">
+            Charisma: @_newCha
+        </MudSlider>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="() => _showCreate = false">Cancel</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="CreateCharacterAsync"
+                   Disabled="@(_newStr + _newWit + _newCha != 9 || string.IsNullOrWhiteSpace(_newName))">
+            Create
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    private List<CharacterResponse> _characters = [];
+    private bool _loading = true;
+    private bool _showCreate;
+
+    private string _newName = "";
+    private string _newBackstory = "";
+    private int _newStr = 3;
+    private int _newWit = 3;
+    private int _newCha = 3;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadCharactersAsync();
+    }
+
+    private async Task LoadCharactersAsync()
+    {
+        _loading = true;
+        try
+        {
+            _characters = await Api.GetMyCharactersAsync();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error loading characters: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private async Task CreateCharacterAsync()
+    {
+        try
+        {
+            var request = new CreateCharacterRequest(
+                Auth.AccountToken ?? "", _newName, _newBackstory, _newStr, _newWit, _newCha);
+            await Api.CreateCharacterAsync(request);
+            Snackbar.Add($"{_newName} created!", Severity.Success);
+            _showCreate = false;
+            _newName = "";
+            _newBackstory = "";
+            _newStr = _newWit = _newCha = 3;
+            await LoadCharactersAsync();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private static double GetXpPercent(CharacterResponse c) =>
+        c.Xp + c.XpToNextLevel == 0 ? 0 : (double)c.Xp / (c.Xp + c.XpToNextLevel) * 100;
+}

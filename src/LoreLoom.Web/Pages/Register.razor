@@ -1,0 +1,88 @@
+@page "/register"
+@inject LoreLoomApiClient Api
+@inject AuthService Auth
+@inject NavigationManager Nav
+@inject ISnackbar Snackbar
+
+<div class="hero-section">
+    <MudCard Style="width: 400px; max-width: 95vw;">
+        <MudCardHeader>
+            <MudText Typo="Typo.h5" Color="Color.Primary">🎲 Sign Up</MudText>
+        </MudCardHeader>
+        <MudCardContent>
+            <MudTextField @bind-Value="_email" Label="Email" Variant="Variant.Outlined"
+                          InputType="InputType.Email" Class="mb-3" Required="true" />
+            <MudTextField @bind-Value="_username" Label="Username (shown in-game)" Variant="Variant.Outlined"
+                          Class="mb-3" Required="true" Counter="50" MaxLength="50" />
+            <MudTextField @bind-Value="_password" Label="Password" Variant="Variant.Outlined"
+                          InputType="InputType.Password" Class="mb-3" Required="true" />
+            <MudTextField @bind-Value="_confirmPassword" Label="Confirm Password" Variant="Variant.Outlined"
+                          InputType="InputType.Password" OnKeyDown="OnKeyDown" />
+        </MudCardContent>
+        <MudCardActions Class="d-flex flex-column pa-4">
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth="true"
+                       OnClick="RegisterAsync" Disabled="_loading">
+                @if (_loading) { <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" /> }
+                Create Account
+            </MudButton>
+            <MudText Typo="Typo.body2" Class="mt-3" Align="Align.Center">
+                Already have an account?
+                <MudLink Href="/login" Color="Color.Secondary">Log in</MudLink>
+            </MudText>
+        </MudCardActions>
+    </MudCard>
+</div>
+
+@code {
+    private string _email = "";
+    private string _username = "";
+    private string _password = "";
+    private string _confirmPassword = "";
+    private bool _loading;
+
+    private async Task OnKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter") await RegisterAsync();
+    }
+
+    private async Task RegisterAsync()
+    {
+        if (string.IsNullOrWhiteSpace(_email) || string.IsNullOrWhiteSpace(_username) || string.IsNullOrWhiteSpace(_password))
+        {
+            Snackbar.Add("Please fill in all fields.", Severity.Warning);
+            return;
+        }
+
+        if (_password != _confirmPassword)
+        {
+            Snackbar.Add("Passwords do not match.", Severity.Warning);
+            return;
+        }
+
+        if (_password.Length < 4)
+        {
+            Snackbar.Add("Password must be at least 4 characters.", Severity.Warning);
+            return;
+        }
+
+        _loading = true;
+        try
+        {
+            var result = await Api.RegisterAsync(new RegisterRequest(_email, _username, _password));
+            if (result?.Jwt is not null)
+            {
+                await Auth.LoginAsync(result.Jwt, result.Username, result.Email, result.Token);
+                Snackbar.Add($"Welcome, {result.Username}!", Severity.Success);
+                Nav.NavigateTo("/games");
+            }
+        }
+        catch (HttpRequestException ex)
+        {
+            Snackbar.Add(ex.Message.Contains("409") ? "Email or username already taken." : $"Error: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+}

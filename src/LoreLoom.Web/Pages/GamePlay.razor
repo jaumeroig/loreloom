@@ -1,0 +1,201 @@
+@page "/games/{GameId:guid}"
+@inject LoreLoomApiClient Api
+@inject AuthService Auth
+@inject NavigationManager Nav
+@inject ISnackbar Snackbar
+@implements IDisposable
+
+@if (_game is null)
+{
+    <MudProgressLinear Indeterminate="true" Color="Color.Primary" />
+    return;
+}
+
+<MudGrid>
+    @* Main game area *@
+    <MudItem xs="12" md="8">
+        <MudCard Class="mb-4">
+            <MudCardHeader>
+                <MudText Typo="Typo.h5">@_game.Title</MudText>
+            </MudCardHeader>
+            <MudCardContent>
+                @* Resource bar *@
+                <div class="d-flex align-center gap-2 mb-3">
+                    <MudText Typo="Typo.subtitle2" Style="min-width:100px;">@_game.ResourceName</MudText>
+                    <div class="resource-bar flex-grow-1">
+                        <div class="resource-bar-fill"
+                             style="width:@(_game.ResourcePct)%;background-color:@ResourceColorHex(_game.ResourcePct);">
+                        </div>
+                    </div>
+                    <MudText Typo="Typo.subtitle2" Style="min-width:40px;">@_game.ResourcePct%</MudText>
+                </div>
+
+                @if (_game.Status == GameStatus.Finished)
+                {
+                    <MudAlert Severity="@(_game.ResourcePct > 0 ? Severity.Success : Severity.Error)" Class="mb-3">
+                        <b>@(_game.ResourcePct > 0 ? "Victory!" : "Defeat!")</b> The adventure has ended.
+                        <MudButton Variant="Variant.Text" Color="Color.Inherit" Href="@($"/games/{GameId}/result")">
+                            View Results
+                        </MudButton>
+                    </MudAlert>
+                }
+
+                @* Turn history *@
+                <div class="turn-history" @ref="_historyDiv">
+                    @foreach (var turn in _turns)
+                    {
+                        <MudCard Elevation="0" Class="turn-card mb-3 pa-3" Style="background:rgba(255,255,255,0.03);">
+                            <MudText Typo="Typo.subtitle2" Color="Color.Primary">
+                                @turn.PlayerName
+                            </MudText>
+                            <MudText Typo="Typo.body2" Class="mb-2">@turn.PlayerAction</MudText>
+                            <MudCard Elevation="0" Class="turn-card-dm pa-2" Style="background:rgba(255,215,79,0.05);">
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">DM</MudText>
+                                <MudText Typo="Typo.body2">@ParseNarrative(turn.DmResponse)</MudText>
+                            </MudCard>
+                        </MudCard>
+                    }
+                </div>
+            </MudCardContent>
+        </MudCard>
+
+        @* Action input *@
+        @if (_game.Status == GameStatus.Active && IsMyTurn)
+        {
+            <MudCard>
+                <MudCardContent>
+                    <MudText Typo="Typo.subtitle2" Color="Color.Secondary" Class="mb-2">
+                        ⚔️ It's your turn! What do you do?
+                    </MudText>
+                    <MudTextField @bind-Value="_action" Variant="Variant.Outlined" Lines="3"
+                                  Placeholder="Describe your action..."
+                                  Disabled="_sending" />
+                </MudCardContent>
+                <MudCardActions Class="pa-4">
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SendTurnAsync"
+                               Disabled="@(string.IsNullOrWhiteSpace(_action) || _sending)"
+                               StartIcon="@Icons.Material.Filled.Send">
+                        @if (_sending) { <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" /> }
+                        Send Action
+                    </MudButton>
+                </MudCardActions>
+            </MudCard>
+        }
+        else if (_game.Status == GameStatus.Active)
+        {
+            <MudAlert Severity="Severity.Info">
+                Waiting for <b>@CurrentTurnPlayer</b> to take their turn...
+            </MudAlert>
+        }
+    </MudItem>
+
+    @* Sidebar: players *@
+    <MudItem xs="12" md="4">
+        <MudCard>
+            <MudCardHeader>
+                <MudText Typo="Typo.h6">Players</MudText>
+            </MudCardHeader>
+            <MudCardContent>
+                <MudList T="string" Dense="true">
+                    @foreach (var p in _game.Players)
+                    {
+                        <MudListItem T="string">
+                            <div class="d-flex align-center gap-2">
+                                @if (p.IsCurrentTurn)
+                                {
+                                    <MudIcon Icon="@Icons.Material.Filled.ArrowRight" Color="Color.Secondary" Size="Size.Small" />
+                                }
+                                <MudText Typo="Typo.body2"
+                                         Style="@(p.Name == Auth.Username ? "color:#CE93D8;font-weight:600;" : "")">
+                                    @p.Name
+                                </MudText>
+                                @if (p.IsCurrentTurn)
+                                {
+                                    <MudChip T="string" Size="Size.Small" Color="Color.Secondary">Turn</MudChip>
+                                }
+                            </div>
+                        </MudListItem>
+                    }
+                </MudList>
+            </MudCardContent>
+        </MudCard>
+    </MudItem>
+</MudGrid>
+
+@code {
+    [Parameter] public Guid GameId { get; set; }
+
+    private GameResponse? _game;
+    private List<TurnResponse> _turns = [];
+    private string _action = "";
+    private bool _sending;
+    private Timer? _pollTimer;
+    private ElementReference _historyDiv;
+
+    private bool IsMyTurn => _game?.Players.FirstOrDefault(p => p.IsCurrentTurn)?.Name == Auth.Username;
+    private string CurrentTurnPlayer => _game?.Players.FirstOrDefault(p => p.IsCurrentTurn)?.Name ?? "...";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await RefreshAsync();
+
+        _pollTimer = new Timer(async _ =>
+        {
+            await RefreshAsync();
+            await InvokeAsync(StateHasChanged);
+        }, null, 3000, 3000);
+    }
+
+    private async Task RefreshAsync()
+    {
+        try
+        {
+            _game = await Api.GetGameAsync(GameId);
+            _turns = await Api.GetTurnsAsync(GameId);
+
+            if (_game?.Status == GameStatus.Finished)
+                _pollTimer?.Dispose();
+        }
+        catch { /* ignore polling errors */ }
+    }
+
+    private async Task SendTurnAsync()
+    {
+        if (string.IsNullOrWhiteSpace(_action)) return;
+
+        _sending = true;
+        try
+        {
+            var request = new SendTurnRequest(Auth.AccountToken ?? "", _action);
+            var result = await Api.SendTurnAsync(GameId, request);
+            _action = "";
+            await RefreshAsync();
+
+            if (result?.GameOver == true)
+            {
+                _pollTimer?.Dispose();
+                Snackbar.Add(result.Victory ? "🎉 Victory!" : "💀 Defeat!", 
+                    result.Victory ? Severity.Success : Severity.Error);
+            }
+        }
+        catch (Exception ex) { Snackbar.Add($"Error: {ex.Message}", Severity.Error); }
+        finally { _sending = false; }
+    }
+
+    private static string ParseNarrative(string dmResponse)
+    {
+        // DM response is stored as JSON or plain text; extract narrative
+        try
+        {
+            using var doc = System.Text.Json.JsonDocument.Parse(dmResponse);
+            if (doc.RootElement.TryGetProperty("narrative", out var narrative))
+                return narrative.GetString() ?? dmResponse;
+        }
+        catch { /* not JSON, return as-is */ }
+        return dmResponse;
+    }
+
+    private static string ResourceColorHex(int pct) => pct > 60 ? "#66BB6A" : pct > 30 ? "#FFA726" : "#EF5350";
+
+    public void Dispose() => _pollTimer?.Dispose();
+}

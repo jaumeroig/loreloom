@@ -1,0 +1,66 @@
+@page "/"
+@inject AuthService Auth
+@inject NavigationManager Nav
+
+@if (_initialized && Auth.Jwt is not null)
+{
+    Nav.NavigateTo("/games");
+    return;
+}
+
+<div class="hero-section">
+    <div class="hero-content">
+        <MudText Typo="Typo.h2" Color="Color.Primary" GutterBottom="true">
+            🎲 LoreLoom
+        </MudText>
+        <MudText Typo="Typo.h5" Color="Color.Secondary" GutterBottom="true">
+            AI-Powered Tabletop RPG
+        </MudText>
+        <MudText Typo="Typo.body1" Class="mb-6" Style="color: #ffffffa0;">
+            Create your character, join a party, and let the AI Dungeon Master weave your story.
+            Every action shapes the narrative — will your party survive?
+        </MudText>
+
+        <div class="d-flex justify-center gap-4">
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Large"
+                       Href="/login" StartIcon="@Icons.Material.Filled.Login">
+                Log In
+            </MudButton>
+            <MudButton Variant="Variant.Outlined" Color="Color.Secondary" Size="Size.Large"
+                       Href="/register" StartIcon="@Icons.Material.Filled.PersonAdd">
+                Sign Up
+            </MudButton>
+        </div>
+
+        <MudDivider Class="my-6" />
+
+        <MudGrid Justify="Justify.Center" Spacing="4">
+            <MudItem xs="12" sm="4">
+                <MudText Typo="Typo.h6" Color="Color.Primary">⚔️ Create</MudText>
+                <MudText Typo="Typo.body2">Build unique characters with Strength, Wit & Charisma</MudText>
+            </MudItem>
+            <MudItem xs="12" sm="4">
+                <MudText Typo="Typo.h6" Color="Color.Primary">🤖 Play</MudText>
+                <MudText Typo="Typo.body2">An AI Dungeon Master narrates your adventure in real time</MudText>
+            </MudItem>
+            <MudItem xs="12" sm="4">
+                <MudText Typo="Typo.h6" Color="Color.Primary">🏆 Compete</MudText>
+                <MudText Typo="Typo.body2">Earn XP, level up, and climb the global ranking</MudText>
+            </MudItem>
+        </MudGrid>
+    </div>
+</div>
+
+@code {
+    private bool _initialized;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await Auth.InitializeAsync();
+            _initialized = true;
+            StateHasChanged();
+        }
+    }
+}
