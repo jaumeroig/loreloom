@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" msdata:Ordinal="0" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter</value></resheader>
+
+  <!-- App -->
+  <data name="AppTitle" xml:space="preserve"><value>Lore Loom</value></data>
+  <data name="AppSubtitle" xml:space="preserve"><value>RPG multijugador per terminal amb IA</value></data>
+
+  <!-- Auth -->
+  <data name="AuthRegisterOrLogin" xml:space="preserve"><value>Registrar-se o Iniciar sessió?</value></data>
+  <data name="AuthRegister" xml:space="preserve"><value>Registrar-se</value></data>
+  <data name="AuthLogin" xml:space="preserve"><value>Iniciar sessió</value></data>
+  <data name="AuthUsername" xml:space="preserve"><value>Nom d'usuari</value></data>
+  <data name="AuthPassword" xml:space="preserve"><value>Contrasenya</value></data>
+  <data name="AuthRegisterSuccess" xml:space="preserve"><value>Compte creat! Benvingut/da, {0}!</value></data>
+  <data name="AuthLoginSuccess" xml:space="preserve"><value>Benvingut/da de nou, {0}!</value></data>
+  <data name="AuthError" xml:space="preserve"><value>Error: {0}</value></data>
+  <data name="WelcomeBack" xml:space="preserve"><value>Benvingut/da de nou, {0}!</value></data>
+
+  <!-- Main Menu -->
+  <data name="MenuTitle" xml:space="preserve"><value>Menú Principal</value></data>
+  <data name="MenuCharacters" xml:space="preserve"><value>Els meus personatges</value></data>
+  <data name="MenuJoinGame" xml:space="preserve"><value>Unir-se a partida</value></data>
+  <data name="MenuCreateGame" xml:space="preserve"><value>Crear partida</value></data>
+  <data name="MenuRanking" xml:space="preserve"><value>Rànquing</value></data>
+  <data name="MenuLanguage" xml:space="preserve"><value>Idioma</value></data>
+  <data name="MenuLogout" xml:space="preserve"><value>Tancar sessió</value></data>
+  <data name="MenuExit" xml:space="preserve"><value>Sortir</value></data>
+  <data name="SelectLanguage" xml:space="preserve"><value>Selecciona l'idioma</value></data>
+  <data name="LanguageChanged" xml:space="preserve"><value>Idioma canviat a {0}</value></data>
+
+  <!-- Characters -->
+  <data name="CharactersTitle" xml:space="preserve"><value>Els meus personatges</value></data>
+  <data name="CreateNewCharacter" xml:space="preserve"><value>Crear nou personatge</value></data>
+  <data name="GoBack" xml:space="preserve"><value>Enrere</value></data>
+  <data name="CharacterName" xml:space="preserve"><value>Nom del personatge</value></data>
+  <data name="CharacterBackstory" xml:space="preserve"><value>Història (opcional)</value></data>
+  <data name="StatStrength" xml:space="preserve"><value>Força</value></data>
+  <data name="StatWit" xml:space="preserve"><value>Enginy</value></data>
+  <data name="StatCharisma" xml:space="preserve"><value>Carisma</value></data>
+  <data name="StatsInstruction" xml:space="preserve"><value>Distribueix 9 punts entre els stats (cadascun 1-5)</value></data>
+  <data name="CharacterCreated" xml:space="preserve"><value>Personatge "{0}" creat!</value></data>
+  <data name="NoCharacters" xml:space="preserve"><value>Encara no tens cap personatge.</value></data>
+  <data name="Level" xml:space="preserve"><value>Nivell</value></data>
+  <data name="XP" xml:space="preserve"><value>XP</value></data>
+  <data name="StatsError" xml:space="preserve"><value>Els stats han de sumar 9. Total actual: {0}</value></data>
+
+  <!-- Games -->
+  <data name="GameTitle" xml:space="preserve"><value>Títol de la partida</value></data>
+  <data name="GameSetting" xml:space="preserve"><value>Ambientació (p.ex., fantasia fosca, cyberpunk, medieval)</value></data>
+  <data name="GameResourceName" xml:space="preserve"><value>Nom del recurs (p.ex., Màgia del cercle, Combustible)</value></data>
+  <data name="GameMaxPlayers" xml:space="preserve"><value>Màxim de jugadors</value></data>
+  <data name="GameIsPublic" xml:space="preserve"><value>Partida pública?</value></data>
+  <data name="GameLanguage" xml:space="preserve"><value>Idioma de la partida (p.ex., Català, Castellà, Anglès)</value></data>
+  <data name="GameCreated" xml:space="preserve"><value>Partida creada! ID: {0}</value></data>
+  <data name="GameInviteCode" xml:space="preserve"><value>Codi d'invitació: {0}</value></data>
+  <data name="SelectCharacter" xml:space="preserve"><value>Selecciona un personatge (o Cap)</value></data>
+  <data name="NoCharOption" xml:space="preserve"><value>Sense personatge</value></data>
+  <data name="PlayerName" xml:space="preserve"><value>El teu nom en aquesta partida</value></data>
+  <data name="PublicGames" xml:space="preserve"><value>Partides Públiques</value></data>
+  <data name="NoPublicGames" xml:space="preserve"><value>No hi ha partides públiques disponibles.</value></data>
+  <data name="EnterGameId" xml:space="preserve"><value>Introdueix l'ID de la partida o codi d'invitació</value></data>
+  <data name="JoinedGame" xml:space="preserve"><value>T'has unit a la partida!</value></data>
+  <data name="WaitingForStart" xml:space="preserve"><value>Esperant que l'amfitrió iniciï la partida...</value></data>
+  <data name="StartGame" xml:space="preserve"><value>Iniciar la partida</value></data>
+  <data name="WaitForPlayers" xml:space="preserve"><value>Esperar més jugadors</value></data>
+  <data name="PlayersInGame" xml:space="preserve"><value>Jugadors: {0}/{1}</value></data>
+  <data name="GameStarted" xml:space="preserve"><value>L'aventura comença!</value></data>
+
+  <!-- Turn -->
+  <data name="YourTurn" xml:space="preserve"><value>El teu torn!</value></data>
+  <data name="NotYourTurn" xml:space="preserve"><value>Esperant el torn de {0}...</value></data>
+  <data name="EnterAction" xml:space="preserve"><value>La teva acció</value></data>
+  <data name="WaitingForDm" xml:space="preserve"><value>El Dungeon Master està pensant...</value></data>
+  <data name="ResourceBar" xml:space="preserve"><value>{0}: {1}%</value></data>
+  <data name="DmSays" xml:space="preserve"><value>DM</value></data>
+  <data name="ResourceCost" xml:space="preserve"><value>Cost del recurs: {0}</value></data>
+  <data name="PressEnter" xml:space="preserve"><value>Prem Enter per continuar...</value></data>
+
+  <!-- Game Over -->
+  <data name="GameOverVictory" xml:space="preserve"><value>VICTÒRIA!</value></data>
+  <data name="GameOverDefeat" xml:space="preserve"><value>DERROTA</value></data>
+  <data name="Postmortem" xml:space="preserve"><value>Epíleg</value></data>
+  <data name="Results" xml:space="preserve"><value>Resultats</value></data>
+  <data name="Player" xml:space="preserve"><value>Jugador</value></data>
+  <data name="XpEarned" xml:space="preserve"><value>XP guanyat</value></data>
+  <data name="Points" xml:space="preserve"><value>Punts</value></data>
+  <data name="ExportQuestion" xml:space="preserve"><value>Exportar la partida a Markdown?</value></data>
+  <data name="ExportSaved" xml:space="preserve"><value>Exportat a {0}</value></data>
+
+  <!-- Errors -->
+  <data name="ErrorConnection" xml:space="preserve"><value>No s'ha pogut connectar al servidor. Està en marxa?</value></data>
+  <data name="ErrorGeneric" xml:space="preserve"><value>Error: {0}</value></data>
+
+  <!-- Ranking -->
+  <data name="RankingTitle" xml:space="preserve"><value>Rànquing Global</value></data>
+  <data name="RankingEmpty" xml:space="preserve"><value>Encara no hi ha dades de rànquing.</value></data>
+  <data name="Rank" xml:space="preserve"><value>Posició</value></data>
+  <data name="GamesPlayed" xml:space="preserve"><value>Partides Jugades</value></data>
+</root>

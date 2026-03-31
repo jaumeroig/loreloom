@@ -1,0 +1,11 @@
+bin/
+obj/
+*.db
+*.db-shm
+*.db-wal
+.vs/
+*.user
+appsettings.json
+appsettings.Development.json
+.claude/
+loreloom-*.md

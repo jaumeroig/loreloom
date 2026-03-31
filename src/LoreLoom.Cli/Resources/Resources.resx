@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" msdata:Ordinal="0" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter</value></resheader>
+
+  <!-- App -->
+  <data name="AppTitle" xml:space="preserve"><value>Lore Loom</value></data>
+  <data name="AppSubtitle" xml:space="preserve"><value>Multiplayer CLI RPG powered by AI</value></data>
+
+  <!-- Auth -->
+  <data name="AuthRegisterOrLogin" xml:space="preserve"><value>Register or Login?</value></data>
+  <data name="AuthRegister" xml:space="preserve"><value>Register</value></data>
+  <data name="AuthLogin" xml:space="preserve"><value>Login</value></data>
+  <data name="AuthUsername" xml:space="preserve"><value>Username</value></data>
+  <data name="AuthPassword" xml:space="preserve"><value>Password</value></data>
+  <data name="AuthRegisterSuccess" xml:space="preserve"><value>Account created! Welcome, {0}!</value></data>
+  <data name="AuthLoginSuccess" xml:space="preserve"><value>Welcome back, {0}!</value></data>
+  <data name="AuthError" xml:space="preserve"><value>Error: {0}</value></data>
+  <data name="WelcomeBack" xml:space="preserve"><value>Welcome back, {0}!</value></data>
+
+  <!-- Main Menu -->
+  <data name="MenuTitle" xml:space="preserve"><value>Main Menu</value></data>
+  <data name="MenuCharacters" xml:space="preserve"><value>My Characters</value></data>
+  <data name="MenuJoinGame" xml:space="preserve"><value>Join Game</value></data>
+  <data name="MenuCreateGame" xml:space="preserve"><value>Create Game</value></data>
+  <data name="MenuRanking" xml:space="preserve"><value>Ranking</value></data>
+  <data name="MenuLanguage" xml:space="preserve"><value>Language</value></data>
+  <data name="MenuLogout" xml:space="preserve"><value>Log out</value></data>
+  <data name="MenuExit" xml:space="preserve"><value>Exit</value></data>
+  <data name="SelectLanguage" xml:space="preserve"><value>Select language</value></data>
+  <data name="LanguageChanged" xml:space="preserve"><value>Language changed to {0}</value></data>
+
+  <!-- Characters -->
+  <data name="CharactersTitle" xml:space="preserve"><value>My Characters</value></data>
+  <data name="CreateNewCharacter" xml:space="preserve"><value>Create new character</value></data>
+  <data name="GoBack" xml:space="preserve"><value>Back</value></data>
+  <data name="CharacterName" xml:space="preserve"><value>Character name</value></data>
+  <data name="CharacterBackstory" xml:space="preserve"><value>Backstory (optional)</value></data>
+  <data name="StatStrength" xml:space="preserve"><value>Strength</value></data>
+  <data name="StatWit" xml:space="preserve"><value>Wit</value></data>
+  <data name="StatCharisma" xml:space="preserve"><value>Charisma</value></data>
+  <data name="StatsInstruction" xml:space="preserve"><value>Distribute 9 points across stats (each 1-5)</value></data>
+  <data name="CharacterCreated" xml:space="preserve"><value>Character "{0}" created!</value></data>
+  <data name="NoCharacters" xml:space="preserve"><value>You have no characters yet.</value></data>
+  <data name="Level" xml:space="preserve"><value>Level</value></data>
+  <data name="XP" xml:space="preserve"><value>XP</value></data>
+  <data name="StatsError" xml:space="preserve"><value>Stats must sum to 9. Current total: {0}</value></data>
+
+  <!-- Games -->
+  <data name="GameTitle" xml:space="preserve"><value>Game title</value></data>
+  <data name="GameSetting" xml:space="preserve"><value>Setting (e.g., dark fantasy, cyberpunk, medieval)</value></data>
+  <data name="GameResourceName" xml:space="preserve"><value>Resource name (e.g., Circle Magic, Ship Fuel)</value></data>
+  <data name="GameMaxPlayers" xml:space="preserve"><value>Max players</value></data>
+  <data name="GameIsPublic" xml:space="preserve"><value>Public game?</value></data>
+  <data name="GameLanguage" xml:space="preserve"><value>Game language (e.g., English, Catalan, Spanish)</value></data>
+  <data name="GameCreated" xml:space="preserve"><value>Game created! ID: {0}</value></data>
+  <data name="GameInviteCode" xml:space="preserve"><value>Invite code: {0}</value></data>
+  <data name="SelectCharacter" xml:space="preserve"><value>Select a character (or None)</value></data>
+  <data name="NoCharOption" xml:space="preserve"><value>No character</value></data>
+  <data name="PlayerName" xml:space="preserve"><value>Your name in this game</value></data>
+  <data name="PublicGames" xml:space="preserve"><value>Public Games</value></data>
+  <data name="NoPublicGames" xml:space="preserve"><value>No public games available.</value></data>
+  <data name="EnterGameId" xml:space="preserve"><value>Enter game ID or invite code</value></data>
+  <data name="JoinedGame" xml:space="preserve"><value>Joined game!</value></data>
+  <data name="WaitingForStart" xml:space="preserve"><value>Waiting for the host to start the game...</value></data>
+  <data name="StartGame" xml:space="preserve"><value>Start the game</value></data>
+  <data name="WaitForPlayers" xml:space="preserve"><value>Wait for more players</value></data>
+  <data name="PlayersInGame" xml:space="preserve"><value>Players: {0}/{1}</value></data>
+  <data name="GameStarted" xml:space="preserve"><value>The adventure begins!</value></data>
+
+  <!-- Turn -->
+  <data name="YourTurn" xml:space="preserve"><value>Your turn!</value></data>
+  <data name="NotYourTurn" xml:space="preserve"><value>Waiting for {0}'s turn...</value></data>
+  <data name="EnterAction" xml:space="preserve"><value>Your action</value></data>
+  <data name="WaitingForDm" xml:space="preserve"><value>The Dungeon Master is thinking...</value></data>
+  <data name="ResourceBar" xml:space="preserve"><value>{0}: {1}%</value></data>
+  <data name="DmSays" xml:space="preserve"><value>DM</value></data>
+  <data name="ResourceCost" xml:space="preserve"><value>Resource cost: {0}</value></data>
+  <data name="PressEnter" xml:space="preserve"><value>Press Enter to continue...</value></data>
+
+  <!-- Game Over -->
+  <data name="GameOverVictory" xml:space="preserve"><value>VICTORY!</value></data>
+  <data name="GameOverDefeat" xml:space="preserve"><value>DEFEAT</value></data>
+  <data name="Postmortem" xml:space="preserve"><value>Epilogue</value></data>
+  <data name="Results" xml:space="preserve"><value>Results</value></data>
+  <data name="Player" xml:space="preserve"><value>Player</value></data>
+  <data name="XpEarned" xml:space="preserve"><value>XP Earned</value></data>
+  <data name="Points" xml:space="preserve"><value>Points</value></data>
+  <data name="ExportQuestion" xml:space="preserve"><value>Export game to Markdown?</value></data>
+  <data name="ExportSaved" xml:space="preserve"><value>Exported to {0}</value></data>
+
+  <!-- Errors -->
+  <data name="ErrorConnection" xml:space="preserve"><value>Could not connect to server. Is it running?</value></data>
+  <data name="ErrorGeneric" xml:space="preserve"><value>Error: {0}</value></data>
+
+  <!-- Ranking -->
+  <data name="RankingTitle" xml:space="preserve"><value>Global Ranking</value></data>
+  <data name="RankingEmpty" xml:space="preserve"><value>No ranking data yet.</value></data>
+  <data name="Rank" xml:space="preserve"><value>Rank</value></data>
+  <data name="GamesPlayed" xml:space="preserve"><value>Games Played</value></data>
+</root>
