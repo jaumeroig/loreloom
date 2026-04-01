@@ -30,7 +30,28 @@ var sqliteConnectionString = new SqliteConnectionStringBuilder(connectionString)
 
 if (!string.IsNullOrWhiteSpace(sqliteConnectionString.DataSource) && !Path.IsPathRooted(sqliteConnectionString.DataSource))
 {
-    sqliteConnectionString.DataSource = Path.Combine(builder.Environment.ContentRootPath, sqliteConnectionString.DataSource);
+    var dataFileName = sqliteConnectionString.DataSource;
+    var appServiceHome = Environment.GetEnvironmentVariable("HOME");
+
+    if (!builder.Environment.IsDevelopment() && !string.IsNullOrWhiteSpace(appServiceHome))
+    {
+        var persistentDataDirectory = Path.Combine(appServiceHome, "data");
+        Directory.CreateDirectory(persistentDataDirectory);
+
+        var deployedDatabasePath = Path.Combine(builder.Environment.ContentRootPath, dataFileName);
+        var persistentDatabasePath = Path.Combine(persistentDataDirectory, dataFileName);
+
+        if (!File.Exists(persistentDatabasePath) && File.Exists(deployedDatabasePath))
+        {
+            File.Copy(deployedDatabasePath, persistentDatabasePath);
+        }
+
+        sqliteConnectionString.DataSource = persistentDatabasePath;
+    }
+    else
+    {
+        sqliteConnectionString.DataSource = Path.Combine(builder.Environment.ContentRootPath, dataFileName);
+    }
 }
 
 builder.Services.AddDbContext<LoreLoomDbContext>(options =>
