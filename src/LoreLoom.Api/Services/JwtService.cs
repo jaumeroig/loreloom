@@ -20,7 +20,7 @@ public class JwtService(IOptions<JwtOptions> options)
         {
             new Claim(JwtRegisteredClaimNames.Sub, account.Id.ToString()),
             new Claim(JwtRegisteredClaimNames.Email, account.Email),
-            new Claim(ClaimTypes.Name, account.Username),
+            new Claim(ClaimTypes.Name, account.DisplayName),
             new Claim("account_token", account.Token)
         };
 

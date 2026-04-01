@@ -115,7 +115,7 @@
                                     <MudIcon Icon="@Icons.Material.Filled.ArrowRight" Color="Color.Secondary" Size="Size.Small" />
                                 }
                                 <MudText Typo="Typo.body2"
-                                         Style="@(p.Name == Auth.Username ? "color:#F0B952;font-weight:600;" : "")">
+                                         Style="@(p.Name == Auth.DisplayName ? "color:#F0B952;font-weight:600;" : "")">
                                     @p.Name
                                 </MudText>
                                 @if (p.IsCurrentTurn)
@@ -142,7 +142,7 @@
     private Timer? _pollTimer;
     private ElementReference _historyDiv;
 
-    private bool IsMyTurn => _game?.Players.FirstOrDefault(p => p.IsCurrentTurn)?.Name == Auth.Username;
+    private bool IsMyTurn => _game?.Players.FirstOrDefault(p => p.IsCurrentTurn)?.Name == Auth.DisplayName;
     private string CurrentTurnPlayer => _game?.Players.FirstOrDefault(p => p.IsCurrentTurn)?.Name ?? "...";
 
     protected override async Task OnInitializedAsync()

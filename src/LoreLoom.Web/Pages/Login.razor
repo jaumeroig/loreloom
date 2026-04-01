@@ -58,7 +58,7 @@
             var result = await Api.LoginAsync(new LoginRequest(_email, _password));
             if (result?.Jwt is not null)
             {
-                await Auth.LoginAsync(result.Jwt, result.Username, result.Email, result.Token);
+                await Auth.LoginAsync(result.Jwt, result.DisplayName, result.Email, result.Token);
                 Nav.NavigateTo("/games");
             }
         }

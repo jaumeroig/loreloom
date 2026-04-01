@@ -21,11 +21,10 @@ public class LoreLoomDbContext : DbContext
         {
             e.HasKey(a => a.Id);
             e.Property(a => a.Email).IsRequired().HasMaxLength(200);
-            e.Property(a => a.Username).IsRequired().HasMaxLength(50);
+            e.Property(a => a.DisplayName).IsRequired().HasMaxLength(50);
             e.Property(a => a.PasswordHash).IsRequired();
             e.Property(a => a.Token).IsRequired().HasMaxLength(100);
             e.HasIndex(a => a.Email).IsUnique();
-            e.HasIndex(a => a.Username).IsUnique();
             e.HasIndex(a => a.Token).IsUnique();
         });
 

@@ -93,7 +93,7 @@ else
     private bool _starting;
     private Timer? _pollTimer;
 
-    private bool IsCreator => _game?.Players.FirstOrDefault(p => p.IsCurrentTurn)?.Name == Auth.Username;
+    private bool IsCreator => _game?.Players.FirstOrDefault(p => p.IsCurrentTurn)?.Name == Auth.DisplayName;
 
     protected override async Task OnInitializedAsync()
     {

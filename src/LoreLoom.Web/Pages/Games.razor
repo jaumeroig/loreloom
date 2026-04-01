@@ -53,7 +53,7 @@
                                 </div>
                             </MudCardContent>
                             <MudCardActions>
-                                @if (g.Players.Any(p => p.Name == Auth.Username))
+                                @if (g.Players.Any(p => p.Name == Auth.DisplayName))
                                 {
                                     <MudButton Variant="Variant.Text" Color="Color.Primary"
                                                OnClick="() => GoToGame(g)">
@@ -185,7 +185,7 @@
         {
             var all = await Api.ListGamesAsync();
             _myActiveGames = all
-                .Where(g => g.Players.Any(p => p.Name == Auth.Username))
+                .Where(g => g.Players.Any(p => p.Name == Auth.DisplayName))
                 .OrderByDescending(g => g.CreatedAt)
                 .ToList();
         }
@@ -197,7 +197,7 @@
     {
         try
         {
-            var request = new JoinGameRequest(Auth.AccountToken ?? "", Auth.Username ?? "", null, null);
+            var request = new JoinGameRequest(Auth.AccountToken ?? "", Auth.DisplayName ?? "", null, null);
             await Api.JoinGameAsync(gameId, request);
             Snackbar.Add("Joined!", Severity.Success);
             Nav.NavigateTo($"/games/{gameId}/lobby");
@@ -218,7 +218,7 @@
                 Snackbar.Add("Game not found with that invite code.", Severity.Warning);
                 return;
             }
-            var request = new JoinGameRequest(Auth.AccountToken ?? "", Auth.Username ?? "", null, _inviteCode.Trim().ToUpper());
+            var request = new JoinGameRequest(Auth.AccountToken ?? "", Auth.DisplayName ?? "", null, _inviteCode.Trim().ToUpper());
             await Api.JoinGameAsync(game.Id, request);
             Snackbar.Add("Joined!", Severity.Success);
             _showJoinByCode = false;

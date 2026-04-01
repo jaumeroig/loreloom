@@ -47,7 +47,7 @@ public class GamesController(LoreLoomDbContext db, TurnManager turnManager) : Co
     public async Task<ActionResult<GameResponse>> Create(CreateGameRequest request)
     {
         var token = this.GetAccountToken() ?? request.CreatorToken;
-        var name = this.GetUsername() ?? request.CreatorName;
+        var name = this.GetDisplayName() ?? request.CreatorName;
 
         var game = new Game
         {
@@ -96,7 +96,7 @@ public class GamesController(LoreLoomDbContext db, TurnManager turnManager) : Co
             return BadRequest("Invalid invite code.");
 
         var token = this.GetAccountToken() ?? request.Token;
-        var name = this.GetUsername() ?? request.Name;
+        var name = this.GetDisplayName() ?? request.Name;
 
         if (game.Players.Any(p => p.Token == token))
             return BadRequest("You are already in this game.");

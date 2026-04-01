@@ -4,7 +4,7 @@ namespace LoreLoom.Core.Dtos;
 
 public record RegisterRequest(
     [Required, EmailAddress] string Email,
-    [Required, MinLength(3), MaxLength(50)] string Username,
+    [Required, MinLength(3), MaxLength(50)] string DisplayName,
     [Required, MinLength(4)] string Password
 );
 
@@ -14,7 +14,7 @@ public record LoginRequest(
 );
 
 public record AuthResponse(
-    string Username,
+    string DisplayName,
     string Email,
     string Token,
     string? Jwt = null

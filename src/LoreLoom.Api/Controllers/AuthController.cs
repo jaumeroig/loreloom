@@ -19,14 +19,11 @@ public class AuthController(LoreLoomDbContext db, JwtService jwtService) : Contr
         if (await db.Accounts.AnyAsync(a => a.Email == request.Email))
             return Conflict("Email already registered.");
 
-        if (await db.Accounts.AnyAsync(a => a.Username == request.Username))
-            return Conflict("Username already taken.");
-
         var account = new Account
         {
             Id = Guid.NewGuid(),
             Email = request.Email,
-            Username = request.Username,
+            DisplayName = request.DisplayName,
             PasswordHash = HashPassword(request.Password)
         };
 
@@ -35,7 +32,7 @@ public class AuthController(LoreLoomDbContext db, JwtService jwtService) : Contr
 
         var jwt = jwtService.GenerateToken(account);
         return CreatedAtAction(nameof(Register),
-            new AuthResponse(account.Username, account.Email, account.Token, jwt));
+            new AuthResponse(account.DisplayName, account.Email, account.Token, jwt));
     }
 
     [HttpPost("login")]
@@ -49,7 +46,7 @@ public class AuthController(LoreLoomDbContext db, JwtService jwtService) : Contr
             return Unauthorized("Invalid email or password.");
 
         var jwt = jwtService.GenerateToken(account);
-        return new AuthResponse(account.Username, account.Email, account.Token, jwt);
+        return new AuthResponse(account.DisplayName, account.Email, account.Token, jwt);
     }
 
     private static string HashPassword(string password)

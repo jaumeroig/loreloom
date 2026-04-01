@@ -14,7 +14,7 @@
             <MudTextField @bind-Value="_email" Label="Email" Variant="Variant.Outlined"
                           InputType="InputType.Email" Class="mb-4" Required="true"
                           Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Email" />
-            <MudTextField @bind-Value="_username" Label="Username" Variant="Variant.Outlined"
+            <MudTextField @bind-Value="_displayName" Label="Nickname" Variant="Variant.Outlined"
                           Class="mb-4" Required="true" Counter="50" MaxLength="50"
                           Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Badge"
                           HelperText="Shown in-game to other players" />
@@ -43,7 +43,7 @@
 
 @code {
     private string _email = "";
-    private string _username = "";
+    private string _displayName = "";
     private string _password = "";
     private string _confirmPassword = "";
     private bool _loading;
@@ -55,7 +55,7 @@
 
     private async Task RegisterAsync()
     {
-        if (string.IsNullOrWhiteSpace(_email) || string.IsNullOrWhiteSpace(_username) || string.IsNullOrWhiteSpace(_password))
+        if (string.IsNullOrWhiteSpace(_email) || string.IsNullOrWhiteSpace(_displayName) || string.IsNullOrWhiteSpace(_password))
         {
             Snackbar.Add("Please fill in all fields.", Severity.Warning);
             return;
@@ -76,17 +76,17 @@
         _loading = true;
         try
         {
-            var result = await Api.RegisterAsync(new RegisterRequest(_email, _username, _password));
+            var result = await Api.RegisterAsync(new RegisterRequest(_email, _displayName, _password));
             if (result?.Jwt is not null)
             {
-                await Auth.LoginAsync(result.Jwt, result.Username, result.Email, result.Token);
-                Snackbar.Add($"Welcome, {result.Username}!", Severity.Success);
+                await Auth.LoginAsync(result.Jwt, result.DisplayName, result.Email, result.Token);
+                Snackbar.Add($"Welcome, {result.DisplayName}!", Severity.Success);
                 Nav.NavigateTo("/games");
             }
         }
         catch (HttpRequestException ex)
         {
-            Snackbar.Add(ex.Message.Contains("409") ? "Email or username already taken." : $"Error: {ex.Message}", Severity.Error);
+            Snackbar.Add(ex.Message.Contains("409") ? "Email already registered." : $"Error: {ex.Message}", Severity.Error);
         }
         finally
         {
