@@ -3,17 +3,32 @@ using LoreLoom.Api.Services;
 using LoreLoom.Core.Data;
 using LoreLoom.Core.Engine;
 using LoreLoom.Core.Services;
+using Microsoft.Data.Sqlite;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
-var builder = WebApplication.CreateBuilder(args);
+var builder = WebApplication.CreateBuilder(new WebApplicationOptions
+{
+    Args = args,
+    ContentRootPath = AppContext.BaseDirectory
+});
 
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
+    ?? throw new InvalidOperationException("Connection string 'DefaultConnection' is not configured.");
+
+var sqliteConnectionString = new SqliteConnectionStringBuilder(connectionString);
+
+if (!string.IsNullOrWhiteSpace(sqliteConnectionString.DataSource) && !Path.IsPathRooted(sqliteConnectionString.DataSource))
+{
+    sqliteConnectionString.DataSource = Path.Combine(builder.Environment.ContentRootPath, sqliteConnectionString.DataSource);
+}
+
 builder.Services.AddDbContext<LoreLoomDbContext>(options =>
-    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseSqlite(sqliteConnectionString.ConnectionString));
 
 builder.Services.Configure<GroqOptions>(builder.Configuration.GetSection(GroqOptions.SectionName));
 builder.Services.AddHttpClient<ILlmService, GroqLlmService>();
