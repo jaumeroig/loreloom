@@ -18,6 +18,9 @@ namespace LoreLoom.Core.Data.Migrations
                 nullable: false,
                 defaultValue: "");
 
+            migrationBuilder.Sql(
+                "UPDATE Accounts SET Email = 'migrate-' || Id || '@placeholder.local' WHERE Email = '';");
+
             migrationBuilder.CreateIndex(
                 name: "IX_Accounts_Email",
                 table: "Accounts",
