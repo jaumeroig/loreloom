@@ -14,6 +14,12 @@ var builder = WebApplication.CreateBuilder(new WebApplicationOptions
     ContentRootPath = AppContext.BaseDirectory
 });
 
+var port = Environment.GetEnvironmentVariable("PORT");
+if (int.TryParse(port, out var parsedPort))
+{
+    builder.WebHost.UseUrls($"http://0.0.0.0:{parsedPort}");
+}
+
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 
