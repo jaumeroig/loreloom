@@ -32,4 +32,3 @@ jobs:
           package: ./publish.zip
           type: 'zip'
           clean: true
-          startup-command: 'dotnet /home/site/wwwroot/LoreLoom.Api.dll'
