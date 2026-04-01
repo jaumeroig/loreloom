@@ -116,7 +116,7 @@
         {
             var request = new CreateGameRequest(
                 _title, _setting, _resourceName,
-                Auth.AccountToken ?? "", Auth.Username ?? "",
+                Auth.AccountToken ?? "", Auth.DisplayName ?? "",
                 _selectedCharacterId, _isPublic, _maxPlayers, _language);
             var game = await Api.CreateGameAsync(request);
             if (game is not null)

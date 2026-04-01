@@ -12,7 +12,7 @@ public class AuthService : AuthenticationStateProvider
     private readonly HttpClient _http;
 
     public string? Jwt { get; private set; }
-    public string? Username { get; private set; }
+    public string? DisplayName { get; private set; }
     public string? Email { get; private set; }
     public string? AccountToken { get; private set; }
     public string Language { get; set; } = "English";
@@ -26,7 +26,7 @@ public class AuthService : AuthenticationStateProvider
     public async Task InitializeAsync()
     {
         Jwt = await _js.InvokeAsync<string?>("localStorage.getItem", "jwt");
-        Username = await _js.InvokeAsync<string?>("localStorage.getItem", "username");
+        DisplayName = await _js.InvokeAsync<string?>("localStorage.getItem", "displayName");
         Email = await _js.InvokeAsync<string?>("localStorage.getItem", "email");
         AccountToken = await _js.InvokeAsync<string?>("localStorage.getItem", "accountToken");
         Language = await _js.InvokeAsync<string?>("localStorage.getItem", "language") ?? "English";
@@ -35,15 +35,15 @@ public class AuthService : AuthenticationStateProvider
             _http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", Jwt);
     }
 
-    public async Task LoginAsync(string jwt, string username, string email, string accountToken)
+    public async Task LoginAsync(string jwt, string displayName, string email, string accountToken)
     {
         Jwt = jwt;
-        Username = username;
+        DisplayName = displayName;
         Email = email;
         AccountToken = accountToken;
 
         await _js.InvokeVoidAsync("localStorage.setItem", "jwt", jwt);
-        await _js.InvokeVoidAsync("localStorage.setItem", "username", username);
+        await _js.InvokeVoidAsync("localStorage.setItem", "displayName", displayName);
         await _js.InvokeVoidAsync("localStorage.setItem", "email", email);
         await _js.InvokeVoidAsync("localStorage.setItem", "accountToken", accountToken);
 
@@ -54,12 +54,12 @@ public class AuthService : AuthenticationStateProvider
     public async Task LogoutAsync()
     {
         Jwt = null;
-        Username = null;
+        DisplayName = null;
         Email = null;
         AccountToken = null;
 
         await _js.InvokeVoidAsync("localStorage.removeItem", "jwt");
-        await _js.InvokeVoidAsync("localStorage.removeItem", "username");
+        await _js.InvokeVoidAsync("localStorage.removeItem", "displayName");
         await _js.InvokeVoidAsync("localStorage.removeItem", "email");
         await _js.InvokeVoidAsync("localStorage.removeItem", "accountToken");
 

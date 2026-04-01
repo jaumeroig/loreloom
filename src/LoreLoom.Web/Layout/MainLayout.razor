@@ -11,7 +11,7 @@
                 <MudSpacer />
                 <MudChip T="string" Size="Size.Small" Variant="Variant.Text" Color="Color.Default"
                          Icon="@Icons.Material.Filled.Person">
-                    @Auth.Username
+                    @Auth.DisplayName
                 </MudChip>
                 <MudIconButton Icon="@Icons.Material.Filled.Logout" Color="Color.Inherit" OnClick="LogoutAsync"
                                Size="Size.Small" />
