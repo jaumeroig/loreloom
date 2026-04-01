@@ -2,7 +2,7 @@
 @inject LoreLoomApiClient Api
 @inject ISnackbar Snackbar
 
-<MudText Typo="Typo.h4" Class="mb-4">🏆 Global Ranking</MudText>
+<MudText Typo="Typo.h4" Class="mb-6">Global Ranking</MudText>
 
 @if (_loading)
 {
@@ -10,31 +10,53 @@
 }
 else if (_ranking.Count == 0)
 {
-    <MudAlert Severity="Severity.Info">No rankings yet. Play a game to appear here!</MudAlert>
+    <MudAlert Severity="Severity.Info" Variant="Variant.Outlined">
+        No rankings yet. Play a game to appear here!
+    </MudAlert>
 }
 else
 {
-    <MudTable Items="_ranking" Hover="true" Elevation="2" Dense="true">
-        <HeaderContent>
-            <MudTh>Rank</MudTh>
-            <MudTh>Player</MudTh>
-            <MudTh>Character</MudTh>
-            <MudTh>Points</MudTh>
-            <MudTh>Games</MudTh>
-        </HeaderContent>
-        <RowTemplate>
-            <MudTd>
-                @if (context.Rank == 1) { <MudText Color="Color.Warning"><b>🥇 @context.Rank</b></MudText> }
-                else if (context.Rank == 2) { <MudText Style="color:#aaa;"><b>🥈 @context.Rank</b></MudText> }
-                else if (context.Rank == 3) { <MudText Color="Color.Warning"><b>🥉 @context.Rank</b></MudText> }
-                else { <MudText>@context.Rank</MudText> }
-            </MudTd>
-            <MudTd><b>@context.PlayerName</b></MudTd>
-            <MudTd>@(context.CharacterName ?? "—")</MudTd>
-            <MudTd>@context.TotalPoints</MudTd>
-            <MudTd>@context.GamesPlayed</MudTd>
-        </RowTemplate>
-    </MudTable>
+    <MudCard Elevation="0" Class="glass-card">
+        <MudTable Items="_ranking" Hover="true" Elevation="0" Dense="true"
+                  Style="background:transparent;">
+            <HeaderContent>
+                <MudTh>Rank</MudTh>
+                <MudTh>Player</MudTh>
+                <MudTh>Character</MudTh>
+                <MudTh>Points</MudTh>
+                <MudTh>Games</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd>
+                    @if (context.Rank == 1)
+                    {
+                        <MudChip T="string" Size="Size.Small" Color="Color.Primary" Variant="Variant.Filled"
+                                 Style="font-weight:700;">1st</MudChip>
+                    }
+                    else if (context.Rank == 2)
+                    {
+                        <MudChip T="string" Size="Size.Small" Color="Color.Default" Variant="Variant.Filled"
+                                 Style="font-weight:700;">2nd</MudChip>
+                    }
+                    else if (context.Rank == 3)
+                    {
+                        <MudChip T="string" Size="Size.Small" Color="Color.Warning" Variant="Variant.Filled"
+                                 Style="font-weight:700;">3rd</MudChip>
+                    }
+                    else
+                    {
+                        <MudText Style="color:#9A97B0;">@context.Rank</MudText>
+                    }
+                </MudTd>
+                <MudTd><b>@context.PlayerName</b></MudTd>
+                <MudTd Style="color:#9A97B0;">@(context.CharacterName ?? "—")</MudTd>
+                <MudTd>
+                    <MudText Color="Color.Primary" Style="font-weight:600;">@context.TotalPoints</MudText>
+                </MudTd>
+                <MudTd Style="color:#9A97B0;">@context.GamesPlayed</MudTd>
+            </RowTemplate>
+        </MudTable>
+    </MudCard>
 }
 
 @code {

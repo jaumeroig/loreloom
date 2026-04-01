@@ -5,27 +5,35 @@
 @inject ISnackbar Snackbar
 
 <div class="hero-section">
-    <MudCard Style="width: 400px; max-width: 95vw;">
-        <MudCardHeader>
-            <MudText Typo="Typo.h5" Color="Color.Primary">🎲 Sign Up</MudText>
-        </MudCardHeader>
-        <MudCardContent>
+    <MudCard Class="auth-card" Style="width: 420px; max-width: 95vw;">
+        <MudCardContent Class="pa-6">
+            <div class="text-center mb-6">
+                <MudText Typo="Typo.h4" Color="Color.Primary" Style="letter-spacing:0.04em;">LoreLoom</MudText>
+                <MudText Typo="Typo.body2" Style="color:#9A97B0;" Class="mt-1">Begin your adventure</MudText>
+            </div>
             <MudTextField @bind-Value="_email" Label="Email" Variant="Variant.Outlined"
-                          InputType="InputType.Email" Class="mb-3" Required="true" />
-            <MudTextField @bind-Value="_username" Label="Username (shown in-game)" Variant="Variant.Outlined"
-                          Class="mb-3" Required="true" Counter="50" MaxLength="50" />
+                          InputType="InputType.Email" Class="mb-4" Required="true"
+                          Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Email" />
+            <MudTextField @bind-Value="_username" Label="Username" Variant="Variant.Outlined"
+                          Class="mb-4" Required="true" Counter="50" MaxLength="50"
+                          Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Badge"
+                          HelperText="Shown in-game to other players" />
             <MudTextField @bind-Value="_password" Label="Password" Variant="Variant.Outlined"
-                          InputType="InputType.Password" Class="mb-3" Required="true" />
+                          InputType="InputType.Password" Class="mb-4" Required="true"
+                          Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Lock" />
             <MudTextField @bind-Value="_confirmPassword" Label="Confirm Password" Variant="Variant.Outlined"
-                          InputType="InputType.Password" OnKeyDown="OnKeyDown" />
+                          InputType="InputType.Password"
+                          Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Lock"
+                          OnKeyDown="OnKeyDown" />
         </MudCardContent>
-        <MudCardActions Class="d-flex flex-column pa-4">
+        <MudCardActions Class="d-flex flex-column pa-6 pt-2">
             <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth="true"
-                       OnClick="RegisterAsync" Disabled="_loading">
+                       OnClick="RegisterAsync" Disabled="_loading"
+                       Style="border-radius:12px;height:48px;font-weight:600;">
                 @if (_loading) { <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" /> }
                 Create Account
             </MudButton>
-            <MudText Typo="Typo.body2" Class="mt-3" Align="Align.Center">
+            <MudText Typo="Typo.body2" Class="mt-4" Align="Align.Center" Style="color:#9A97B0;">
                 Already have an account?
                 <MudLink Href="/login" Color="Color.Secondary">Log in</MudLink>
             </MudText>

@@ -5,7 +5,7 @@
 @inject ISnackbar Snackbar
 @implements IDisposable
 
-<MudText Typo="Typo.h4" Class="mb-4">Game Lobby</MudText>
+<MudText Typo="Typo.h4" Class="mb-6">Game Lobby</MudText>
 
 @if (_game is null)
 {
@@ -15,14 +15,16 @@ else
 {
     <MudGrid>
         <MudItem xs="12" md="8">
-            <MudCard>
+            <MudCard Elevation="0" Class="glass-card">
                 <MudCardHeader>
                     <MudText Typo="Typo.h5">@_game.Title</MudText>
                 </MudCardHeader>
                 <MudCardContent>
-                    <MudText Typo="Typo.body1" Class="mb-3">@_game.Setting</MudText>
+                    <MudText Typo="Typo.body1" Class="mb-4" Style="color:#9A97B0;line-height:1.6;">
+                        @_game.Setting
+                    </MudText>
 
-                    <MudText Typo="Typo.subtitle2" Class="mb-2">
+                    <MudText Typo="Typo.subtitle2" Class="mb-2" Style="color:#9A97B0;">
                         Players (@_game.PlayerCount / @_game.MaxPlayers)
                     </MudText>
 
@@ -30,36 +32,51 @@ else
                         @foreach (var p in _game.Players)
                         {
                             <MudListItem T="string" Icon="@Icons.Material.Filled.Person">
-                                @p.Name
-                                @if (p.IsCurrentTurn) { <MudChip T="string" Size="Size.Small" Color="Color.Secondary">Creator</MudChip> }
+                                <div class="d-flex align-center gap-2">
+                                    <MudText>@p.Name</MudText>
+                                    @if (p.IsCurrentTurn)
+                                    {
+                                        <MudChip T="string" Size="Size.Small" Color="Color.Primary"
+                                                 Variant="Variant.Text">Creator</MudChip>
+                                    }
+                                </div>
                             </MudListItem>
                         }
                     </MudList>
 
                     @if (!_game.IsPublic && _game.InviteCode is not null)
                     {
-                        <MudAlert Severity="Severity.Info" Class="mt-3">
-                            <b>Invite Code:</b> @_game.InviteCode — Share this with friends to let them join!
-                        </MudAlert>
+                        <div class="mt-4 pa-4" style="background:rgba(240,185,82,0.04);border-radius:12px;text-align:center;">
+                            <MudText Typo="Typo.caption" Style="color:#9A97B0;letter-spacing:0.1em;text-transform:uppercase;" Class="mb-2">
+                                Invite Code
+                            </MudText>
+                            <div class="invite-code">@_game.InviteCode</div>
+                            <MudText Typo="Typo.caption" Style="color:#9A97B0;" Class="mt-2">
+                                Share this with friends to let them join
+                            </MudText>
+                        </div>
                     }
 
                     @if (_game.Status == GameStatus.Active)
                     {
-                        <MudAlert Severity="Severity.Success" Class="mt-3">Game has started!</MudAlert>
+                        <MudAlert Severity="Severity.Success" Class="mt-4" Variant="Variant.Outlined">
+                            Game has started!
+                        </MudAlert>
                     }
                 </MudCardContent>
                 <MudCardActions Class="pa-4">
                     @if (IsCreator && _game.Status == GameStatus.Waiting)
                     {
                         <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="StartGameAsync"
-                                   Disabled="_starting" StartIcon="@Icons.Material.Filled.PlayArrow">
+                                   Disabled="_starting" StartIcon="@Icons.Material.Filled.PlayArrow"
+                                   Style="border-radius:12px;">
                             @if (_starting) { <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" /> }
                             Start Game
                         </MudButton>
                     }
                     else if (_game.Status == GameStatus.Waiting)
                     {
-                        <MudText Typo="Typo.body2" Style="color:#ffffffa0;">
+                        <MudText Typo="Typo.body2" Style="color:#9A97B0;">
                             Waiting for the creator to start the game...
                         </MudText>
                     }

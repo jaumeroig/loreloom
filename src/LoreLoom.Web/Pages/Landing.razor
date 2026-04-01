@@ -10,42 +10,57 @@
 
 <div class="hero-section">
     <div class="hero-content">
-        <MudText Typo="Typo.h2" Color="Color.Primary" GutterBottom="true">
-            🎲 LoreLoom
-        </MudText>
-        <MudText Typo="Typo.h5" Color="Color.Secondary" GutterBottom="true">
+        <MudText Typo="Typo.overline" Style="color:#B388FF;letter-spacing:0.25em;font-size:0.85rem;" Class="mb-2">
             AI-Powered Tabletop RPG
         </MudText>
-        <MudText Typo="Typo.body1" Class="mb-6" Style="color: #ffffffa0;">
+        <MudText Typo="Typo.h2" Color="Color.Primary" GutterBottom="true" Style="letter-spacing:0.04em;">
+            LoreLoom
+        </MudText>
+        <MudText Typo="Typo.body1" Class="mb-8" Style="color:#9A97B0;max-width:480px;margin:0 auto;line-height:1.7;">
             Create your character, join a party, and let the AI Dungeon Master weave your story.
             Every action shapes the narrative — will your party survive?
         </MudText>
 
-        <div class="d-flex justify-center gap-4">
+        <div class="d-flex justify-center gap-4 mb-10">
             <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Large"
-                       Href="/login" StartIcon="@Icons.Material.Filled.Login">
+                       Href="/login" StartIcon="@Icons.Material.Filled.Login"
+                       Style="border-radius:12px;padding:12px 32px;font-weight:600;">
                 Log In
             </MudButton>
             <MudButton Variant="Variant.Outlined" Color="Color.Secondary" Size="Size.Large"
-                       Href="/register" StartIcon="@Icons.Material.Filled.PersonAdd">
+                       Href="/register" StartIcon="@Icons.Material.Filled.PersonAdd"
+                       Style="border-radius:12px;padding:12px 32px;font-weight:600;">
                 Sign Up
             </MudButton>
         </div>
 
-        <MudDivider Class="my-6" />
-
         <MudGrid Justify="Justify.Center" Spacing="4">
             <MudItem xs="12" sm="4">
-                <MudText Typo="Typo.h6" Color="Color.Primary">⚔️ Create</MudText>
-                <MudText Typo="Typo.body2">Build unique characters with Strength, Wit & Charisma</MudText>
+                <div class="feature-card">
+                    <span class="feature-icon">&#x2694;&#xFE0F;</span>
+                    <MudText Typo="Typo.h6" Color="Color.Primary" Class="mb-2">Create</MudText>
+                    <MudText Typo="Typo.body2" Style="color:#9A97B0;">
+                        Build unique characters with Strength, Wit & Charisma
+                    </MudText>
+                </div>
             </MudItem>
             <MudItem xs="12" sm="4">
-                <MudText Typo="Typo.h6" Color="Color.Primary">🤖 Play</MudText>
-                <MudText Typo="Typo.body2">An AI Dungeon Master narrates your adventure in real time</MudText>
+                <div class="feature-card">
+                    <span class="feature-icon">&#x1F916;</span>
+                    <MudText Typo="Typo.h6" Color="Color.Secondary" Class="mb-2">Play</MudText>
+                    <MudText Typo="Typo.body2" Style="color:#9A97B0;">
+                        An AI Dungeon Master narrates your adventure in real time
+                    </MudText>
+                </div>
             </MudItem>
             <MudItem xs="12" sm="4">
-                <MudText Typo="Typo.h6" Color="Color.Primary">🏆 Compete</MudText>
-                <MudText Typo="Typo.body2">Earn XP, level up, and climb the global ranking</MudText>
+                <div class="feature-card">
+                    <span class="feature-icon">&#x1F3C6;</span>
+                    <MudText Typo="Typo.h6" Color="Color.Tertiary" Class="mb-2">Compete</MudText>
+                    <MudText Typo="Typo.body2" Style="color:#9A97B0;">
+                        Earn XP, level up, and climb the global ranking
+                    </MudText>
+                </div>
             </MudItem>
         </MudGrid>
     </div>

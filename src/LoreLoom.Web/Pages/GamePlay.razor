@@ -14,27 +14,33 @@
 <MudGrid>
     @* Main game area *@
     <MudItem xs="12" md="8">
-        <MudCard Class="mb-4">
+        <MudCard Elevation="0" Class="glass-card mb-4">
             <MudCardHeader>
                 <MudText Typo="Typo.h5">@_game.Title</MudText>
             </MudCardHeader>
             <MudCardContent>
                 @* Resource bar *@
-                <div class="d-flex align-center gap-2 mb-3">
-                    <MudText Typo="Typo.subtitle2" Style="min-width:100px;">@_game.ResourceName</MudText>
+                <div class="d-flex align-center gap-3 mb-4">
+                    <MudText Typo="Typo.subtitle2" Style="min-width:100px;color:#9A97B0;">
+                        @_game.ResourceName
+                    </MudText>
                     <div class="resource-bar flex-grow-1">
                         <div class="resource-bar-fill"
                              style="width:@(_game.ResourcePct)%;background-color:@ResourceColorHex(_game.ResourcePct);">
                         </div>
                     </div>
-                    <MudText Typo="Typo.subtitle2" Style="min-width:40px;">@_game.ResourcePct%</MudText>
+                    <MudText Typo="Typo.subtitle2" Style="min-width:45px;font-weight:600;">
+                        @_game.ResourcePct%
+                    </MudText>
                 </div>
 
                 @if (_game.Status == GameStatus.Finished)
                 {
-                    <MudAlert Severity="@(_game.ResourcePct > 0 ? Severity.Success : Severity.Error)" Class="mb-3">
+                    <MudAlert Severity="@(_game.ResourcePct > 0 ? Severity.Success : Severity.Error)"
+                              Class="mb-4" Variant="Variant.Outlined">
                         <b>@(_game.ResourcePct > 0 ? "Victory!" : "Defeat!")</b> The adventure has ended.
-                        <MudButton Variant="Variant.Text" Color="Color.Inherit" Href="@($"/games/{GameId}/result")">
+                        <MudButton Variant="Variant.Text" Color="Color.Inherit" Href="@($"/games/{GameId}/result")"
+                                   Size="Size.Small" Class="ml-2">
                             View Results
                         </MudButton>
                     </MudAlert>
@@ -44,14 +50,15 @@
                 <div class="turn-history" @ref="_historyDiv">
                     @foreach (var turn in _turns)
                     {
-                        <MudCard Elevation="0" Class="turn-card mb-3 pa-3" Style="background:rgba(255,255,255,0.03);">
-                            <MudText Typo="Typo.subtitle2" Color="Color.Primary">
+                        <MudCard Elevation="0" Class="turn-card pa-3">
+                            <MudText Typo="Typo.subtitle2" Color="Color.Primary" Style="font-weight:600;">
                                 @turn.PlayerName
                             </MudText>
                             <MudText Typo="Typo.body2" Class="mb-2">@turn.PlayerAction</MudText>
-                            <MudCard Elevation="0" Class="turn-card-dm pa-2" Style="background:rgba(255,215,79,0.05);">
-                                <MudText Typo="Typo.caption" Color="Color.Secondary">DM</MudText>
-                                <MudText Typo="Typo.body2">@ParseNarrative(turn.DmResponse)</MudText>
+                            <MudCard Elevation="0" Class="turn-card-dm pa-3">
+                                <MudText Typo="Typo.caption" Color="Color.Secondary"
+                                         Style="font-weight:600;letter-spacing:0.08em;">DM</MudText>
+                                <MudText Typo="Typo.body2" Class="mt-1">@ParseNarrative(turn.DmResponse)</MudText>
                             </MudCard>
                         </MudCard>
                     }
@@ -62,10 +69,11 @@
         @* Action input *@
         @if (_game.Status == GameStatus.Active && IsMyTurn)
         {
-            <MudCard>
+            <MudCard Elevation="0" Class="glass-card">
                 <MudCardContent>
-                    <MudText Typo="Typo.subtitle2" Color="Color.Secondary" Class="mb-2">
-                        ⚔️ It's your turn! What do you do?
+                    <MudText Typo="Typo.subtitle1" Color="Color.Secondary" Class="mb-3"
+                             Style="font-weight:600;">
+                        It's your turn! What do you do?
                     </MudText>
                     <MudTextField @bind-Value="_action" Variant="Variant.Outlined" Lines="3"
                                   Placeholder="Describe your action..."
@@ -74,7 +82,8 @@
                 <MudCardActions Class="pa-4">
                     <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SendTurnAsync"
                                Disabled="@(string.IsNullOrWhiteSpace(_action) || _sending)"
-                               StartIcon="@Icons.Material.Filled.Send">
+                               StartIcon="@Icons.Material.Filled.Send"
+                               Style="border-radius:12px;">
                         @if (_sending) { <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" /> }
                         Send Action
                     </MudButton>
@@ -83,7 +92,7 @@
         }
         else if (_game.Status == GameStatus.Active)
         {
-            <MudAlert Severity="Severity.Info">
+            <MudAlert Severity="Severity.Info" Variant="Variant.Outlined">
                 Waiting for <b>@CurrentTurnPlayer</b> to take their turn...
             </MudAlert>
         }
@@ -91,7 +100,7 @@
 
     @* Sidebar: players *@
     <MudItem xs="12" md="4">
-        <MudCard>
+        <MudCard Elevation="0" Class="glass-card">
             <MudCardHeader>
                 <MudText Typo="Typo.h6">Players</MudText>
             </MudCardHeader>
@@ -106,12 +115,13 @@
                                     <MudIcon Icon="@Icons.Material.Filled.ArrowRight" Color="Color.Secondary" Size="Size.Small" />
                                 }
                                 <MudText Typo="Typo.body2"
-                                         Style="@(p.Name == Auth.Username ? "color:#CE93D8;font-weight:600;" : "")">
+                                         Style="@(p.Name == Auth.Username ? "color:#F0B952;font-weight:600;" : "")">
                                     @p.Name
                                 </MudText>
                                 @if (p.IsCurrentTurn)
                                 {
-                                    <MudChip T="string" Size="Size.Small" Color="Color.Secondary">Turn</MudChip>
+                                    <MudChip T="string" Size="Size.Small" Color="Color.Secondary"
+                                             Variant="Variant.Text">Turn</MudChip>
                                 }
                             </div>
                         </MudListItem>
@@ -174,7 +184,7 @@
             if (result?.GameOver == true)
             {
                 _pollTimer?.Dispose();
-                Snackbar.Add(result.Victory ? "🎉 Victory!" : "💀 Defeat!", 
+                Snackbar.Add(result.Victory ? "Victory!" : "Defeat!",
                     result.Victory ? Severity.Success : Severity.Error);
             }
         }
@@ -184,7 +194,6 @@
 
     private static string ParseNarrative(string dmResponse)
     {
-        // DM response is stored as JSON or plain text; extract narrative
         try
         {
             using var doc = System.Text.Json.JsonDocument.Parse(dmResponse);
@@ -195,7 +204,7 @@
         return dmResponse;
     }
 
-    private static string ResourceColorHex(int pct) => pct > 60 ? "#66BB6A" : pct > 30 ? "#FFA726" : "#EF5350";
+    private static string ResourceColorHex(int pct) => pct > 60 ? "#5ECDB0" : pct > 30 ? "#FFB74D" : "#F06292";
 
     public void Dispose() => _pollTimer?.Dispose();
 }

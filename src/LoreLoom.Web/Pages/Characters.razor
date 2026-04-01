@@ -3,12 +3,14 @@
 @inject AuthService Auth
 @inject ISnackbar Snackbar
 
-<MudText Typo="Typo.h4" Class="mb-4">My Characters</MudText>
-
-<MudButton Variant="Variant.Filled" Color="Color.Primary" Class="mb-4"
-           OnClick="() => _showCreate = true" StartIcon="@Icons.Material.Filled.Add">
-    Create Character
-</MudButton>
+<div class="d-flex align-center justify-space-between flex-wrap gap-4 mb-6">
+    <MudText Typo="Typo.h4">My Characters</MudText>
+    <MudButton Variant="Variant.Filled" Color="Color.Primary"
+               OnClick="() => _showCreate = true" StartIcon="@Icons.Material.Filled.Add"
+               Style="border-radius:12px;">
+        Create Character
+    </MudButton>
+</div>
 
 @if (_loading)
 {
@@ -16,7 +18,9 @@
 }
 else if (_characters.Count == 0)
 {
-    <MudAlert Severity="Severity.Info">You don't have any characters yet. Create one to get started!</MudAlert>
+    <MudAlert Severity="Severity.Info" Variant="Variant.Outlined">
+        You don't have any characters yet. Create one to get started!
+    </MudAlert>
 }
 else
 {
@@ -24,22 +28,35 @@ else
         @foreach (var c in _characters)
         {
             <MudItem xs="12" sm="6" md="4">
-                <MudCard Elevation="2">
+                <MudCard Elevation="0" Class="glass-card">
                     <MudCardHeader>
                         <MudText Typo="Typo.h6">@c.Name</MudText>
                     </MudCardHeader>
                     <MudCardContent>
                         @if (!string.IsNullOrEmpty(c.Backstory))
                         {
-                            <MudText Typo="Typo.body2" Class="mb-3" Style="color: #ffffffa0;">@c.Backstory</MudText>
+                            <MudText Typo="Typo.body2" Class="mb-3" Style="color:#9A97B0;font-style:italic;">
+                                @c.Backstory
+                            </MudText>
                         }
-                        <div class="d-flex justify-space-between mb-2">
-                            <MudChip T="string" Color="Color.Error" Size="Size.Small">STR @c.Strength</MudChip>
-                            <MudChip T="string" Color="Color.Info" Size="Size.Small">WIT @c.Wit</MudChip>
-                            <MudChip T="string" Color="Color.Warning" Size="Size.Small">CHA @c.Charisma</MudChip>
+                        <div class="d-flex gap-2 mb-3">
+                            <MudChip T="string" Color="Color.Error" Size="Size.Small" Variant="Variant.Filled"
+                                     Class="stat-chip">STR @c.Strength</MudChip>
+                            <MudChip T="string" Color="Color.Info" Size="Size.Small" Variant="Variant.Filled"
+                                     Class="stat-chip">WIT @c.Wit</MudChip>
+                            <MudChip T="string" Color="Color.Warning" Size="Size.Small" Variant="Variant.Filled"
+                                     Class="stat-chip">CHA @c.Charisma</MudChip>
                         </div>
-                        <MudText Typo="Typo.body2">Level @c.Level — @c.Xp / @(c.Xp + c.XpToNextLevel) XP</MudText>
-                        <MudProgressLinear Value="@GetXpPercent(c)" Color="Color.Secondary" Class="mt-1" />
+                        <div class="d-flex align-center gap-2 mb-1">
+                            <MudText Typo="Typo.body2" Style="color:#9A97B0;">
+                                Level @c.Level
+                            </MudText>
+                            <MudText Typo="Typo.caption" Style="color:#9A97B0;">
+                                @c.Xp / @(c.Xp + c.XpToNextLevel) XP
+                            </MudText>
+                        </div>
+                        <MudProgressLinear Value="@GetXpPercent(c)" Color="Color.Secondary" Class="mt-1"
+                                           Style="border-radius:4px;" />
                     </MudCardContent>
                 </MudCard>
             </MudItem>
@@ -53,13 +70,18 @@ else
         <MudText Typo="Typo.h6">Create Character</MudText>
     </TitleContent>
     <DialogContent>
-        <MudTextField @bind-Value="_newName" Label="Name" Variant="Variant.Outlined" Class="mb-3"
-                      Required="true" MaxLength="100" />
+        <MudTextField @bind-Value="_newName" Label="Name" Variant="Variant.Outlined" Class="mb-4"
+                      Required="true" MaxLength="100"
+                      Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Badge" />
         <MudTextField @bind-Value="_newBackstory" Label="Backstory (optional)" Variant="Variant.Outlined"
-                      Class="mb-3" Lines="3" />
+                      Class="mb-4" Lines="3" />
 
-        <MudText Typo="Typo.subtitle2" Class="mb-2">
-            Stats (must sum to 9, each 1-5): currently @(_newStr + _newWit + _newCha)/9
+        <MudText Typo="Typo.subtitle2" Class="mb-3">
+            Stats — must sum to 9, each 1-5:
+            <MudChip T="string" Size="Size.Small" Variant="Variant.Text"
+                     Color="@(_newStr + _newWit + _newCha == 9 ? Color.Success : Color.Error)">
+                @(_newStr + _newWit + _newCha)/9
+            </MudChip>
         </MudText>
         <MudSlider @bind-Value="_newStr" Min="1" Max="5" Step="1" Color="Color.Error" Class="mb-2">
             Strength: @_newStr
@@ -74,7 +96,8 @@ else
     <DialogActions>
         <MudButton OnClick="() => _showCreate = false">Cancel</MudButton>
         <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="CreateCharacterAsync"
-                   Disabled="@(_newStr + _newWit + _newCha != 9 || string.IsNullOrWhiteSpace(_newName))">
+                   Disabled="@(_newStr + _newWit + _newCha != 9 || string.IsNullOrWhiteSpace(_newName))"
+                   Style="border-radius:10px;">
             Create
         </MudButton>
     </DialogActions>

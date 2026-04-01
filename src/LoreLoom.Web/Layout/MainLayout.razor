@@ -1,20 +1,27 @@
-﻿@inherits LayoutComponentBase
+@inherits LayoutComponentBase
 @inject AuthService Auth
 @inject NavigationManager Nav
 
 <AuthorizeView>
     <Authorized>
         <MudLayout>
-            <MudAppBar Elevation="1">
+            <MudAppBar Elevation="0">
                 <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start"
                                OnClick="ToggleDrawer" />
-                <MudText Typo="Typo.h6" Class="ml-2">🎲 LoreLoom</MudText>
                 <MudSpacer />
-                <MudText Typo="Typo.body2" Class="mr-2">@Auth.Username</MudText>
-                <MudIconButton Icon="@Icons.Material.Filled.Logout" Color="Color.Inherit" OnClick="LogoutAsync" />
+                <MudChip T="string" Size="Size.Small" Variant="Variant.Text" Color="Color.Default"
+                         Icon="@Icons.Material.Filled.Person">
+                    @Auth.Username
+                </MudChip>
+                <MudIconButton Icon="@Icons.Material.Filled.Logout" Color="Color.Inherit" OnClick="LogoutAsync"
+                               Size="Size.Small" />
             </MudAppBar>
 
-            <MudDrawer @bind-Open="_drawerOpen" Elevation="2" ClipMode="DrawerClipMode.Always">
+            <MudDrawer @bind-Open="_drawerOpen" Elevation="0" ClipMode="DrawerClipMode.Always">
+                <div class="nav-brand">
+                    <div class="nav-brand-title">LoreLoom</div>
+                    <div class="nav-brand-subtitle">Tabletop RPG</div>
+                </div>
                 <MudNavMenu>
                     <MudNavLink Href="/games" Match="NavLinkMatch.All"
                                 Icon="@Icons.Material.Filled.SportsEsports">Games</MudNavLink>
@@ -24,13 +31,13 @@
                                 Icon="@Icons.Material.Filled.People">Characters</MudNavLink>
                     <MudNavLink Href="/ranking" Match="NavLinkMatch.All"
                                 Icon="@Icons.Material.Filled.EmojiEvents">Ranking</MudNavLink>
-                    <MudDivider Class="my-2" />
+                    <MudDivider Class="my-2 mx-4" Style="border-color:rgba(255,255,255,0.06);" />
                     <MudNavLink Href="/profile" Match="NavLinkMatch.All"
                                 Icon="@Icons.Material.Filled.Person">Profile</MudNavLink>
                 </MudNavMenu>
             </MudDrawer>
 
-            <MudMainContent Class="pa-4">
+            <MudMainContent Class="pa-6" Style="min-height:100vh;">
                 @Body
             </MudMainContent>
         </MudLayout>

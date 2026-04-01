@@ -4,33 +4,38 @@
 @inject NavigationManager Nav
 @inject ISnackbar Snackbar
 
-<MudText Typo="Typo.h4" Class="mb-4">Create Game</MudText>
+<MudText Typo="Typo.h4" Class="mb-6">Create Game</MudText>
 
 <MudGrid>
     <MudItem xs="12" md="8">
-        <MudCard>
-            <MudCardContent>
+        <MudCard Elevation="0" Class="glass-card">
+            <MudCardContent Class="pa-5">
                 <MudTextField @bind-Value="_title" Label="Title" Variant="Variant.Outlined"
-                              Class="mb-3" Required="true" MaxLength="200"
-                              Placeholder="e.g. The Lost Temple of Azura" />
+                              Class="mb-4" Required="true" MaxLength="200"
+                              Placeholder="e.g. The Lost Temple of Azura"
+                              Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Title" />
 
                 <MudTextField @bind-Value="_setting" Label="Setting / Campaign Description"
-                              Variant="Variant.Outlined" Class="mb-3" Required="true" Lines="4"
+                              Variant="Variant.Outlined" Class="mb-4" Required="true" Lines="4"
                               Placeholder="Describe the world, the situation, and the goal of this adventure..." />
 
                 <MudTextField @bind-Value="_resourceName" Label="Shared Resource Name"
-                              Variant="Variant.Outlined" Class="mb-3" Required="true" MaxLength="200"
+                              Variant="Variant.Outlined" Class="mb-4" Required="true" MaxLength="200"
                               Placeholder="e.g. Hope, Morale, Sanity"
-                              HelperText="The party resource that depletes with risky actions. Game ends at 0%." />
+                              HelperText="The party resource that depletes with risky actions. Game ends at 0%."
+                              Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Favorite" />
 
                 <MudNumericField @bind-Value="_maxPlayers" Label="Max Players" Variant="Variant.Outlined"
-                                 Class="mb-3" Min="1" Max="8" />
+                                 Class="mb-4" Min="1" Max="8"
+                                 Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Group" />
 
-                <MudSwitch @bind-Value="_isPublic" Color="Color.Primary" Class="mb-3"
+                <MudSwitch @bind-Value="_isPublic" Color="Color.Primary" Class="mb-4"
                            Label="@(_isPublic ? "Public — anyone can join" : "Private — invite code required")" />
 
                 <MudSelect T="string" @bind-Value="_language" Label="Game Language"
-                           Variant="Variant.Outlined" AnchorOrigin="Origin.BottomCenter">
+                           Variant="Variant.Outlined"
+                           AnchorOrigin="Origin.BottomCenter"
+                           Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Language">
                     <MudSelectItem Value="@("English")">English</MudSelectItem>
                     <MudSelectItem Value="@("Català")">Català</MudSelectItem>
                     <MudSelectItem Value="@("Español")">Español</MudSelectItem>
@@ -41,9 +46,10 @@
                     <MudSelectItem Value="@("日本語")">日本語</MudSelectItem>
                 </MudSelect>
             </MudCardContent>
-            <MudCardActions Class="pa-4">
+            <MudCardActions Class="pa-5 pt-0">
                 <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="CreateAsync"
-                           Disabled="@(!IsValid || _loading)" StartIcon="@Icons.Material.Filled.Add">
+                           Disabled="@(!IsValid || _loading)" StartIcon="@Icons.Material.Filled.Add"
+                           Style="border-radius:12px;">
                     @if (_loading) { <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" /> }
                     Create Game
                 </MudButton>
@@ -52,17 +58,18 @@
     </MudItem>
 
     <MudItem xs="12" md="4">
-        <MudCard>
-            <MudCardContent>
-                <MudText Typo="Typo.h6" Class="mb-2">Character (optional)</MudText>
-                <MudText Typo="Typo.body2" Class="mb-3" Style="color:#ffffffa0;">
-                    Select a character to play with, or leave empty and play without one.
+        <MudCard Elevation="0" Class="glass-card">
+            <MudCardContent Class="pa-5">
+                <MudText Typo="Typo.h6" Class="mb-2">Character</MudText>
+                <MudText Typo="Typo.body2" Class="mb-4" Style="color:#9A97B0;">
+                    Select a character to play with, or leave empty.
                 </MudText>
                 @if (_characters.Count > 0)
                 {
                     <MudSelect T="Guid?" @bind-Value="_selectedCharacterId" Label="Character"
                                Variant="Variant.Outlined" Clearable="true"
-                               AnchorOrigin="Origin.BottomCenter">
+                               AnchorOrigin="Origin.BottomCenter"
+                               Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Person">
                         @foreach (var c in _characters)
                         {
                             <MudSelectItem T="Guid?" Value="@c.Id">@c.Name (Lv.@c.Level)</MudSelectItem>
@@ -71,8 +78,8 @@
                 }
                 else
                 {
-                    <MudAlert Severity="Severity.Info" Dense="true">
-                        No characters yet. <MudLink Href="/characters">Create one</MudLink>
+                    <MudAlert Severity="Severity.Info" Dense="true" Variant="Variant.Outlined">
+                        No characters yet. <MudLink Href="/characters" Color="Color.Secondary">Create one</MudLink>
                     </MudAlert>
                 }
             </MudCardContent>
