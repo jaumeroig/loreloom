@@ -34,7 +34,7 @@ else
                             <MudListItem T="string" Icon="@Icons.Material.Filled.Person">
                                 <div class="d-flex align-center gap-2">
                                     <MudText>@p.Name</MudText>
-                                    @if (p.IsCurrentTurn)
+                                    @if (p.IsCreator)
                                     {
                                         <MudChip T="string" Size="Size.Small" Color="Color.Primary"
                                                  Variant="Variant.Text">Creator</MudChip>
@@ -73,6 +73,10 @@ else
                             @if (_starting) { <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" /> }
                             Start Game
                         </MudButton>
+                        <MudButton Variant="Variant.Text" Color="Color.Error" OnClick="DeleteGameAsync"
+                                   Disabled="_deleting" StartIcon="@Icons.Material.Filled.DeleteOutline">
+                            Delete Game
+                        </MudButton>
                     }
                     else if (_game.Status == GameStatus.Waiting)
                     {
@@ -91,9 +95,10 @@ else
 
     private GameResponse? _game;
     private bool _starting;
+    private bool _deleting;
     private Timer? _pollTimer;
 
-    private bool IsCreator => _game?.Players.FirstOrDefault(p => p.IsCurrentTurn)?.Name == Auth.DisplayName;
+    private bool IsCreator => _game?.IsOwnedByCurrentUser == true;
 
     protected override async Task OnInitializedAsync()
     {
@@ -130,6 +135,19 @@ else
         }
         catch (Exception ex) { Snackbar.Add($"Error: {ex.Message}", Severity.Error); }
         finally { _starting = false; }
+    }
+
+    private async Task DeleteGameAsync()
+    {
+        _deleting = true;
+        try
+        {
+            await Api.DeleteGameAsync(GameId);
+            Snackbar.Add("Game deleted.", Severity.Success);
+            Nav.NavigateTo("/games");
+        }
+        catch (Exception ex) { Snackbar.Add($"Error: {ex.Message}", Severity.Error); }
+        finally { _deleting = false; }
     }
 
     public void Dispose() => _pollTimer?.Dispose();

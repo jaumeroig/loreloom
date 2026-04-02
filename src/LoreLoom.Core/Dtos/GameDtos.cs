@@ -38,6 +38,7 @@ public record GameResponse(
     int MaxPlayers,
     GameStatus Status,
     int PlayerCount,
+    bool IsOwnedByCurrentUser,
     List<PlayerResponse> Players,
     DateTime CreatedAt
 );
@@ -46,6 +47,7 @@ public record PlayerResponse(
     Guid Id,
     string Name,
     bool IsCurrentTurn,
+    bool IsCreator,
     Guid? CharacterId
 );
 

@@ -129,6 +129,14 @@
                                            OnClick="() => GoToGame(g)" Style="border-radius:10px;">
                                     @(g.Status == GameStatus.Active ? "Play" : g.Status == GameStatus.Finished ? "Results" : "Lobby")
                                 </MudButton>
+                                @if (g.IsOwnedByCurrentUser)
+                                {
+                                    <MudButton Variant="Variant.Text" Color="Color.Error"
+                                               OnClick="() => ConfirmDelete(g)"
+                                               StartIcon="@Icons.Material.Filled.DeleteOutline">
+                                        Delete
+                                    </MudButton>
+                                }
                             </MudCardActions>
                         </MudCard>
                     </MudItem>
@@ -157,13 +165,34 @@
     </DialogActions>
 </MudDialog>
 
+<MudDialog @bind-Visible="_showDeleteDialog">
+    <TitleContent>
+        <MudText Typo="Typo.h6">Delete Game</MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudText>
+            Are you sure you want to delete "@_gameToDelete?.Title"? This action cannot be undone.
+        </MudText>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="CloseDeleteDialog">Cancel</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Error" OnClick="DeleteGameAsync"
+                   Disabled="@(_deletingGame || _gameToDelete is null)" Style="border-radius:10px;">
+            Delete
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
 @code {
     private List<GameResponse> _openGames = [];
     private List<GameResponse> _myActiveGames = [];
     private bool _loadingOpen = true;
     private bool _loadingActive = true;
     private bool _showJoinByCode;
+    private bool _showDeleteDialog;
+    private bool _deletingGame;
     private string _inviteCode = "";
+    private GameResponse? _gameToDelete;
 
     protected override async Task OnInitializedAsync()
     {
@@ -225,6 +254,35 @@
             Nav.NavigateTo($"/games/{game.Id}/lobby");
         }
         catch (Exception ex) { Snackbar.Add($"Error: {ex.Message}", Severity.Error); }
+    }
+
+    private void ConfirmDelete(GameResponse game)
+    {
+        _gameToDelete = game;
+        _showDeleteDialog = true;
+    }
+
+    private void CloseDeleteDialog()
+    {
+        _showDeleteDialog = false;
+        _gameToDelete = null;
+    }
+
+    private async Task DeleteGameAsync()
+    {
+        if (_gameToDelete is null)
+            return;
+
+        _deletingGame = true;
+        try
+        {
+            await Api.DeleteGameAsync(_gameToDelete.Id);
+            Snackbar.Add("Game deleted.", Severity.Success);
+            CloseDeleteDialog();
+            await Task.WhenAll(LoadOpenGamesAsync(), LoadMyGamesAsync());
+        }
+        catch (Exception ex) { Snackbar.Add($"Error: {ex.Message}", Severity.Error); }
+        finally { _deletingGame = false; }
     }
 
     private void GoToGame(GameResponse g)
