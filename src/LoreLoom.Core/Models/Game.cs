@@ -5,6 +5,7 @@ namespace LoreLoom.Core.Models;
 public class Game
 {
     public Guid Id { get; set; }
+    public required string CreatorToken { get; set; }
     public required string Title { get; set; }
     public required string Setting { get; set; }
     public string? SystemPrompt { get; set; }

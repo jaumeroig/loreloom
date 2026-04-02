@@ -44,6 +44,7 @@ public class LoreLoomDbContext : DbContext
         modelBuilder.Entity<Game>(e =>
         {
             e.HasKey(g => g.Id);
+            e.Property(g => g.CreatorToken).IsRequired().HasMaxLength(200);
             e.Property(g => g.Title).IsRequired().HasMaxLength(200);
             e.Property(g => g.Setting).IsRequired();
             e.Property(g => g.ResourceName).IsRequired().HasMaxLength(200);

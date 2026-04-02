@@ -51,6 +51,9 @@ public class LoreLoomApiClient(HttpClient http)
     public async Task<GameResponse?> StartGameAsync(Guid gameId, StartGameRequest request)
         => await PostAsync<GameResponse>($"games/{gameId}/start", request);
 
+    public async Task DeleteGameAsync(Guid gameId)
+        => await DeleteAsync($"games/{gameId}");
+
     public async Task<TurnResultResponse?> SendTurnAsync(Guid gameId, SendTurnRequest request)
         => await PostAsync<TurnResultResponse>($"games/{gameId}/turns", request);
 
@@ -85,6 +88,13 @@ public class LoreLoomApiClient(HttpClient http)
         return await response.Content.ReadFromJsonAsync<T>(JsonOptions);
     }
 
+    private async Task DeleteAsync(string path)
+    {
+        var response = await http.DeleteAsync(path);
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadFromJsonAsync<T>(JsonOptions);
+    }
+  
     private async Task<T?> PutAsync<T>(string path, object body)
     {
         var response = await http.PutAsJsonAsync(path, body, JsonOptions);

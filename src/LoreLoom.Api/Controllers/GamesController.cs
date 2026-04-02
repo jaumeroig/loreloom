@@ -18,6 +18,7 @@ public class GamesController(LoreLoomDbContext db, TurnManager turnManager) : Co
         [FromQuery] GameStatus? status,
         [FromQuery] bool? isPublic)
     {
+        var accountToken = this.GetAccountToken();
         var query = db.Games.Include(g => g.Players).AsQueryable();
 
         if (status.HasValue)
@@ -29,18 +30,19 @@ public class GamesController(LoreLoomDbContext db, TurnManager turnManager) : Co
             .OrderByDescending(g => g.CreatedAt)
             .ToListAsync();
 
-        return games.Select(g => ToResponse(g)).ToList();
+        return games.Select(g => ToResponse(g, currentAccountToken: accountToken)).ToList();
     }
 
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<GameResponse>> Get(Guid id)
     {
+        var accountToken = this.GetAccountToken();
         var game = await db.Games
             .Include(g => g.Players)
             .FirstOrDefaultAsync(g => g.Id == id);
 
         if (game is null) return NotFound();
-        return ToResponse(game);
+        return ToResponse(game, currentAccountToken: accountToken);
     }
 
     [HttpPost]
@@ -52,6 +54,7 @@ public class GamesController(LoreLoomDbContext db, TurnManager turnManager) : Co
         var game = new Game
         {
             Id = Guid.NewGuid(),
+            CreatorToken = token,
             Title = request.Title,
             Setting = request.Setting,
             ResourceName = request.ResourceName,
@@ -74,7 +77,7 @@ public class GamesController(LoreLoomDbContext db, TurnManager turnManager) : Co
         db.Players.Add(player);
         await db.SaveChangesAsync();
 
-        return CreatedAtAction(nameof(Get), new { id = game.Id }, ToResponse(game, [player]));
+        return CreatedAtAction(nameof(Get), new { id = game.Id }, ToResponse(game, [player], token));
     }
 
     [HttpPost("{id:guid}/join")]
@@ -113,7 +116,7 @@ public class GamesController(LoreLoomDbContext db, TurnManager turnManager) : Co
         db.Players.Add(player);
         await db.SaveChangesAsync();
 
-        return ToResponse(game);
+        return ToResponse(game, currentAccountToken: token);
     }
 
     [HttpPost("{id:guid}/start")]
@@ -129,8 +132,10 @@ public class GamesController(LoreLoomDbContext db, TurnManager turnManager) : Co
             return BadRequest("Game has already started or finished.");
 
         var token = this.GetAccountToken() ?? request.Token;
-        var creator = game.Players.FirstOrDefault(p => p.IsCurrentTurn);
-        if (creator is null || creator.Token != token)
+        if (string.IsNullOrWhiteSpace(game.CreatorToken))
+            return BadRequest("Unable to verify game ownership for this game.");
+
+        if (game.CreatorToken != token)
             return BadRequest("Only the game creator can start the game.");
 
         game.Status = GameStatus.Active;
@@ -138,7 +143,29 @@ public class GamesController(LoreLoomDbContext db, TurnManager turnManager) : Co
 
         await db.SaveChangesAsync();
 
-        return ToResponse(game);
+        return ToResponse(game, currentAccountToken: token);
+    }
+
+    [HttpDelete("{id:guid}")]
+    public async Task<ActionResult> Delete(Guid id)
+    {
+        var token = this.GetAccountToken();
+        if (string.IsNullOrWhiteSpace(token))
+            return Unauthorized("You must be logged in to delete games.");
+
+        var game = await db.Games.FindAsync(id);
+        if (game is null) return NotFound();
+
+        if (string.IsNullOrWhiteSpace(game.CreatorToken))
+            return BadRequest("Unable to verify game ownership for this game.");
+
+        if (game.CreatorToken != token)
+            return BadRequest("Only the game creator can delete the game.");
+
+        db.Games.Remove(game);
+        await db.SaveChangesAsync();
+
+        return NoContent();
     }
 
     [HttpPost("{id:guid}/turns")]
@@ -328,7 +355,7 @@ public class GamesController(LoreLoomDbContext db, TurnManager turnManager) : Co
         )).ToList();
     }
 
-    private static GameResponse ToResponse(Game g, List<Player>? players = null)
+    private static GameResponse ToResponse(Game g, List<Player>? players = null, string? currentAccountToken = null)
     {
         var p = players ?? g.Players.ToList();
         return new GameResponse(
@@ -342,7 +369,8 @@ public class GamesController(LoreLoomDbContext db, TurnManager turnManager) : Co
             g.MaxPlayers,
             g.Status,
             p.Count,
-            p.Select(pl => new PlayerResponse(pl.Id, pl.Name, pl.IsCurrentTurn, pl.CharacterId)).ToList(),
+            currentAccountToken is not null && g.CreatorToken == currentAccountToken,
+            p.Select(pl => new PlayerResponse(pl.Id, pl.Name, pl.IsCurrentTurn, g.CreatorToken == pl.Token, pl.CharacterId)).ToList(),
             g.CreatedAt
         );
     }
