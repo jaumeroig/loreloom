@@ -30,6 +30,29 @@
     <MudItem xs="12" sm="6">
         <MudCard Elevation="0" Class="glass-card">
             <MudCardContent Class="pa-5">
+                <MudText Typo="Typo.h6" Class="mb-4">Change Password</MudText>
+                <MudTextField @bind-Value="_currentPassword" Label="Current Password"
+                              InputType="InputType.Password" Variant="Variant.Outlined" Class="mb-4"
+                              Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Lock" />
+                <MudTextField @bind-Value="_newPassword" Label="New Password"
+                              InputType="InputType.Password" Variant="Variant.Outlined" Class="mb-4"
+                              HelperText="At least 8 characters"
+                              Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Lock" />
+                <MudTextField @bind-Value="_confirmNewPassword" Label="Confirm New Password"
+                              InputType="InputType.Password" Variant="Variant.Outlined" Class="mb-4"
+                              Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Lock" />
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="ChangePasswordAsync"
+                           Disabled="_changingPassword" Style="border-radius:12px;">
+                    @if (_changingPassword) { <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" /> }
+                    Change Password
+                </MudButton>
+            </MudCardContent>
+        </MudCard>
+    </MudItem>
+
+    <MudItem xs="12" sm="6">
+        <MudCard Elevation="0" Class="glass-card">
+            <MudCardContent Class="pa-5">
                 <MudText Typo="Typo.h6" Class="mb-4">Preferences</MudText>
                 <MudSelect T="string" @bind-Value="_language" Label="Game Language"
                            Variant="Variant.Outlined" Class="mb-4"
@@ -57,6 +80,11 @@
     private string _language = "English";
     private string _displayName = "";
     private bool _savingNickname;
+
+    private string _currentPassword = "";
+    private string _newPassword = "";
+    private string _confirmNewPassword = "";
+    private bool _changingPassword;
 
     protected override void OnInitialized()
     {
@@ -101,6 +129,52 @@
         finally
         {
             _savingNickname = false;
+        }
+    }
+
+    private async Task ChangePasswordAsync()
+    {
+        if (string.IsNullOrWhiteSpace(_currentPassword) || string.IsNullOrWhiteSpace(_newPassword))
+        {
+            Snackbar.Add("Please fill in all password fields.", Severity.Warning);
+            return;
+        }
+
+        if (_newPassword != _confirmNewPassword)
+        {
+            Snackbar.Add("New passwords do not match.", Severity.Warning);
+            return;
+        }
+
+        if (_newPassword.Length < 8)
+        {
+            Snackbar.Add("New password must be at least 8 characters.", Severity.Warning);
+            return;
+        }
+
+        _changingPassword = true;
+        try
+        {
+            var result = await Api.ChangePasswordAsync(
+                new ChangePasswordRequest(_currentPassword, _newPassword, _confirmNewPassword));
+
+            if (result is not null)
+                await Auth.UpdateSessionAsync(result);
+
+            _currentPassword = "";
+            _newPassword = "";
+            _confirmNewPassword = "";
+            Snackbar.Add("Password changed successfully.", Severity.Success);
+        }
+        catch (HttpRequestException ex)
+        {
+            Snackbar.Add(ex.StatusCode == System.Net.HttpStatusCode.BadRequest
+                ? "Current password is incorrect or new password is invalid."
+                : $"Error: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _changingPassword = false;
         }
     }
 

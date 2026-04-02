@@ -23,6 +23,24 @@ public class LoreLoomApiClient(HttpClient http)
     public async Task<AuthResponse?> UpdateDisplayNameAsync(UpdateDisplayNameRequest request)
         => await PutAsync<AuthResponse>("auth/profile/display-name", request);
 
+    public async Task<bool> VerifyEmailAsync(string token)
+    {
+        var response = await http.GetAsync($"auth/verify-email?token={Uri.EscapeDataString(token)}");
+        return response.IsSuccessStatusCode;
+    }
+
+    public async Task ResendVerificationAsync()
+        => await PostVoidAsync("auth/resend-verification");
+
+    public async Task<AuthResponse?> ChangePasswordAsync(ChangePasswordRequest request)
+        => await PutAsync<AuthResponse>("auth/profile/password", request);
+
+    public async Task ForgotPasswordAsync(ForgotPasswordRequest request)
+        => await PostVoidAsync("auth/forgot-password", request);
+
+    public async Task ResetPasswordAsync(ResetPasswordRequest request)
+        => await PostVoidAsync("auth/reset-password", request);
+
     // Characters
     public async Task<CharacterResponse?> CreateCharacterAsync(CreateCharacterRequest request)
         => await PostAsync<CharacterResponse>("characters", request);
@@ -99,5 +117,15 @@ public class LoreLoomApiClient(HttpClient http)
         var response = await http.PutAsJsonAsync(path, body, JsonOptions);
         response.EnsureSuccessStatusCode();
         return await response.Content.ReadFromJsonAsync<T>(JsonOptions);
+    }
+
+    private async Task PostVoidAsync(string path, object? body = null)
+    {
+        HttpResponseMessage response;
+        if (body is null)
+            response = await http.PostAsync(path, null);
+        else
+            response = await http.PostAsJsonAsync(path, body, JsonOptions);
+        response.EnsureSuccessStatusCode();
     }
 }

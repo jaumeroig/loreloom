@@ -1,6 +1,8 @@
 @inherits LayoutComponentBase
 @inject AuthService Auth
 @inject NavigationManager Nav
+@inject LoreLoomApiClient Api
+@inject ISnackbar Snackbar
 
 <AuthorizeView>
     <Authorized>
@@ -37,6 +39,16 @@
                 </MudNavMenu>
             </MudDrawer>
 
+            @if (!Auth.EmailVerified)
+            {
+                <MudAlert Severity="Severity.Warning" Class="mx-4 mt-2" Dense="true" ShowCloseIcon="false">
+                    Your email is not verified. Check your inbox or
+                    <MudLink OnClick="ResendVerificationAsync" Color="Color.Warning" Style="cursor:pointer;text-decoration:underline;">
+                        resend verification email
+                    </MudLink>.
+                </MudAlert>
+            }
+
             <MudMainContent Class="layout-content pa-6" Style="min-height:100vh;">
                 @Body
             </MudMainContent>
@@ -57,5 +69,18 @@
     {
         await Auth.LogoutAsync();
         Nav.NavigateTo("/");
+    }
+
+    private async Task ResendVerificationAsync()
+    {
+        try
+        {
+            await Api.ResendVerificationAsync();
+            Snackbar.Add("Verification email sent. Check your inbox.", Severity.Success);
+        }
+        catch
+        {
+            Snackbar.Add("Could not send verification email.", Severity.Error);
+        }
     }
 }
