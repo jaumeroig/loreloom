@@ -247,6 +247,16 @@ h1:focus { outline: none; }
     border-bottom: 1px solid rgba(255,255,255,0.06);
 }
 
+.layout-content {
+    padding-top: calc(24px + 56px) !important;
+}
+
+@media (min-width: 600px) {
+    .layout-content {
+        padding-top: calc(24px + 64px) !important;
+    }
+}
+
 /* ===== Drawer styling ===== */
 .mud-drawer {
     border-right: 1px solid rgba(255,255,255,0.06) !important;
