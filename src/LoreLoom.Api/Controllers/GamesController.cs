@@ -132,6 +132,9 @@ public class GamesController(LoreLoomDbContext db, TurnManager turnManager) : Co
             return BadRequest("Game has already started or finished.");
 
         var token = this.GetAccountToken() ?? request.Token;
+        if (string.IsNullOrWhiteSpace(game.CreatorToken))
+            return BadRequest("Unable to verify game ownership for this game.");
+
         if (game.CreatorToken != token)
             return BadRequest("Only the game creator can start the game.");
 
@@ -152,6 +155,9 @@ public class GamesController(LoreLoomDbContext db, TurnManager turnManager) : Co
 
         var game = await db.Games.FindAsync(id);
         if (game is null) return NotFound();
+
+        if (string.IsNullOrWhiteSpace(game.CreatorToken))
+            return BadRequest("Unable to verify game ownership for this game.");
 
         if (game.CreatorToken != token)
             return BadRequest("Only the game creator can delete the game.");

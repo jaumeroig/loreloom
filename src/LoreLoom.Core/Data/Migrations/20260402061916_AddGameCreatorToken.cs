@@ -39,7 +39,7 @@ namespace LoreLoom.Core.Data.Migrations
                         SELECT p."Token"
                         FROM "Players" AS p
                         WHERE p."GameId" = "Games"."Id"
-                        ORDER BY p."Id"
+                        ORDER BY p.rowid
                         LIMIT 1
                     ),
                     ""
