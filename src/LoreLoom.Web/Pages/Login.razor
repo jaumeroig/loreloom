@@ -15,9 +15,14 @@
                           InputType="InputType.Email" Class="mb-4" Required="true"
                           Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Email" />
             <MudTextField @bind-Value="_password" Label="Password" Variant="Variant.Outlined"
-                          InputType="InputType.Password" Class="mb-2" Required="true"
+                          InputType="InputType.Password" Class="mb-1" Required="true"
                           Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Lock"
                           OnKeyDown="OnKeyDown" />
+            <div class="d-flex justify-end mb-3">
+                <MudLink Href="/forgot-password" Typo="Typo.body2" Color="Color.Secondary">
+                    Forgot password?
+                </MudLink>
+            </div>
         </MudCardContent>
         <MudCardActions Class="d-flex flex-column pa-6 pt-0">
             <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth="true"
@@ -58,13 +63,18 @@
             var result = await Api.LoginAsync(new LoginRequest(_email, _password));
             if (result?.Jwt is not null)
             {
-                await Auth.LoginAsync(result.Jwt, result.DisplayName, result.Email, result.Token);
+                await Auth.LoginAsync(result.Jwt, result.DisplayName, result.Email, result.Token, result.EmailVerified);
                 Nav.NavigateTo("/games");
             }
         }
         catch (HttpRequestException ex)
         {
-            Snackbar.Add(ex.Message.Contains("401") ? "Invalid email or password." : $"Error: {ex.Message}", Severity.Error);
+            if (ex.StatusCode == System.Net.HttpStatusCode.Forbidden)
+                Snackbar.Add("Please verify your email address before logging in. Check your inbox.", Severity.Warning);
+            else if (ex.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                Snackbar.Add("Invalid email or password.", Severity.Error);
+            else
+                Snackbar.Add($"Error: {ex.Message}", Severity.Error);
         }
         finally
         {

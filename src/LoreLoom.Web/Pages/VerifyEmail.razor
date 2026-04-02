@@ -1,0 +1,62 @@
+@page "/verify-email"
+@inject LoreLoomApiClient Api
+@inject NavigationManager Nav
+
+<div class="hero-section">
+    <MudCard Class="auth-card" Style="width: 420px; max-width: 95vw;">
+        <MudCardContent Class="pa-6">
+            <div class="text-center mb-6">
+                <MudText Typo="Typo.h4" Color="Color.Primary" Style="letter-spacing:0.04em;">LoreLoom</MudText>
+                <MudText Typo="Typo.body2" Style="color:#9A97B0;" Class="mt-1">Email Verification</MudText>
+            </div>
+
+            @if (_loading)
+            {
+                <div class="d-flex justify-center py-4">
+                    <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
+                </div>
+            }
+            else if (_success)
+            {
+                <MudAlert Severity="Severity.Success" Class="mb-4">
+                    Your email has been verified successfully! You can now log in.
+                </MudAlert>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth="true"
+                           Href="/login" Style="border-radius:12px;">
+                    Go to Login
+                </MudButton>
+            }
+            else
+            {
+                <MudAlert Severity="Severity.Error" Class="mb-4">
+                    This verification link is invalid or has expired. Please request a new one.
+                </MudAlert>
+                <MudButton Variant="Variant.Outlined" Color="Color.Primary" FullWidth="true"
+                           Href="/login" Style="border-radius:12px;">
+                    Back to Login
+                </MudButton>
+            }
+        </MudCardContent>
+    </MudCard>
+</div>
+
+@code {
+    private bool _loading = true;
+    private bool _success;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var uri = new Uri(Nav.Uri);
+        var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
+        var token = query["token"] ?? "";
+
+        if (string.IsNullOrWhiteSpace(token))
+        {
+            _loading = false;
+            return;
+        }
+
+        _success = await Api.VerifyEmailAsync(token);
+        _loading = false;
+    }
+}

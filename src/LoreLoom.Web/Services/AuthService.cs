@@ -17,6 +17,7 @@ public class AuthService : AuthenticationStateProvider
     public string? Email { get; private set; }
     public string? AccountToken { get; private set; }
     public string Language { get; set; } = "English";
+    public bool EmailVerified { get; private set; } = true;
 
     public AuthService(IJSRuntime js, HttpClient http)
     {
@@ -31,22 +32,26 @@ public class AuthService : AuthenticationStateProvider
         Email = await _js.InvokeAsync<string?>("localStorage.getItem", "email");
         AccountToken = await _js.InvokeAsync<string?>("localStorage.getItem", "accountToken");
         Language = await _js.InvokeAsync<string?>("localStorage.getItem", "language") ?? "English";
+        var emailVerifiedRaw = await _js.InvokeAsync<string?>("localStorage.getItem", "emailVerified");
+        EmailVerified = emailVerifiedRaw != "false";
 
         if (!string.IsNullOrEmpty(Jwt))
             _http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", Jwt);
     }
 
-    public async Task LoginAsync(string jwt, string displayName, string email, string accountToken)
+    public async Task LoginAsync(string jwt, string displayName, string email, string accountToken, bool emailVerified = true)
     {
         Jwt = jwt;
         DisplayName = displayName;
         Email = email;
         AccountToken = accountToken;
+        EmailVerified = emailVerified;
 
         await _js.InvokeVoidAsync("localStorage.setItem", "jwt", jwt);
         await _js.InvokeVoidAsync("localStorage.setItem", "displayName", displayName);
         await _js.InvokeVoidAsync("localStorage.setItem", "email", email);
         await _js.InvokeVoidAsync("localStorage.setItem", "accountToken", accountToken);
+        await _js.InvokeVoidAsync("localStorage.setItem", "emailVerified", emailVerified.ToString().ToLower());
 
         _http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", jwt);
         NotifyAuthenticationStateChanged(GetAuthenticationStateAsync());
@@ -58,11 +63,13 @@ public class AuthService : AuthenticationStateProvider
         DisplayName = null;
         Email = null;
         AccountToken = null;
+        EmailVerified = true;
 
         await _js.InvokeVoidAsync("localStorage.removeItem", "jwt");
         await _js.InvokeVoidAsync("localStorage.removeItem", "displayName");
         await _js.InvokeVoidAsync("localStorage.removeItem", "email");
         await _js.InvokeVoidAsync("localStorage.removeItem", "accountToken");
+        await _js.InvokeVoidAsync("localStorage.removeItem", "emailVerified");
 
         _http.DefaultRequestHeaders.Authorization = null;
         NotifyAuthenticationStateChanged(GetAuthenticationStateAsync());
@@ -79,7 +86,7 @@ public class AuthService : AuthenticationStateProvider
         if (string.IsNullOrWhiteSpace(response.Jwt))
             throw new InvalidOperationException("JWT is required to update the authenticated session.");
 
-        await LoginAsync(response.Jwt, response.DisplayName, response.Email, response.Token);
+        await LoginAsync(response.Jwt, response.DisplayName, response.Email, response.Token, response.EmailVerified);
     }
 
     public override async Task<AuthenticationState> GetAuthenticationStateAsync()

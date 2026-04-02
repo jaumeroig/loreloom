@@ -13,7 +13,7 @@ namespace LoreLoom.Api.Controllers;
 
 [ApiController]
 [Route("[controller]")]
-public class AuthController(LoreLoomDbContext db, JwtService jwtService) : ControllerBase
+public class AuthController(LoreLoomDbContext db, JwtService jwtService, IEmailService emailService) : ControllerBase
 {
     [HttpPost("register")]
     public async Task<ActionResult<AuthResponse>> Register(RegisterRequest request)
@@ -21,20 +21,27 @@ public class AuthController(LoreLoomDbContext db, JwtService jwtService) : Contr
         if (await db.Accounts.AnyAsync(a => a.Email == request.Email))
             return Conflict("Email already registered.");
 
+        var verificationToken = GenerateToken();
+
         var account = new Account
         {
             Id = Guid.NewGuid(),
             Email = request.Email,
             DisplayName = request.DisplayName,
-            PasswordHash = HashPassword(request.Password)
+            PasswordHash = HashPassword(request.Password),
+            EmailVerified = false,
+            EmailVerificationToken = verificationToken,
+            EmailVerificationTokenExpiry = DateTime.UtcNow.AddHours(24)
         };
 
         db.Accounts.Add(account);
         await db.SaveChangesAsync();
 
+        await emailService.SendEmailVerificationAsync(account.Email, account.DisplayName, verificationToken);
+
         var jwt = jwtService.GenerateToken(account);
         return CreatedAtAction(nameof(Register),
-            new AuthResponse(account.DisplayName, account.Email, account.Token, jwt));
+            new AuthResponse(account.DisplayName, account.Email, account.Token, jwt, account.EmailVerified));
     }
 
     [HttpPost("login")]
@@ -47,8 +54,51 @@ public class AuthController(LoreLoomDbContext db, JwtService jwtService) : Contr
         if (!VerifyPassword(request.Password, account.PasswordHash))
             return Unauthorized("Invalid email or password.");
 
+        if (!account.EmailVerified)
+            return StatusCode(403, "Please verify your email address before logging in.");
+
         var jwt = jwtService.GenerateToken(account);
-        return new AuthResponse(account.DisplayName, account.Email, account.Token, jwt);
+        return new AuthResponse(account.DisplayName, account.Email, account.Token, jwt, account.EmailVerified);
+    }
+
+    [HttpGet("verify-email")]
+    public async Task<ActionResult> VerifyEmail([FromQuery] string token)
+    {
+        var account = await db.Accounts.FirstOrDefaultAsync(a => a.EmailVerificationToken == token);
+
+        if (account is null || account.EmailVerificationTokenExpiry < DateTime.UtcNow)
+            return BadRequest("Invalid or expired verification link.");
+
+        account.EmailVerified = true;
+        account.EmailVerificationToken = null;
+        account.EmailVerificationTokenExpiry = null;
+        await db.SaveChangesAsync();
+
+        return Ok("Email verified successfully.");
+    }
+
+    [Authorize]
+    [HttpPost("resend-verification")]
+    public async Task<IActionResult> ResendVerification()
+    {
+        var accountId = this.GetAccountId();
+        if (!accountId.HasValue)
+            return Unauthorized();
+
+        var account = await db.Accounts.FirstOrDefaultAsync(a => a.Id == accountId.Value);
+        if (account is null)
+            return Unauthorized();
+
+        if (account.EmailVerified)
+            return BadRequest("Email is already verified.");
+
+        account.EmailVerificationToken = GenerateToken();
+        account.EmailVerificationTokenExpiry = DateTime.UtcNow.AddHours(24);
+        await db.SaveChangesAsync();
+
+        await emailService.SendEmailVerificationAsync(account.Email, account.DisplayName, account.EmailVerificationToken);
+
+        return Ok("Verification email sent.");
     }
 
     [Authorize]
@@ -67,8 +117,75 @@ public class AuthController(LoreLoomDbContext db, JwtService jwtService) : Contr
         await db.SaveChangesAsync();
 
         var jwt = jwtService.GenerateToken(account);
-        return new AuthResponse(account.DisplayName, account.Email, account.Token, jwt);
+        return new AuthResponse(account.DisplayName, account.Email, account.Token, jwt, account.EmailVerified);
     }
+
+    [Authorize]
+    [HttpPut("profile/password")]
+    public async Task<ActionResult<AuthResponse>> ChangePassword(ChangePasswordRequest request)
+    {
+        var accountId = this.GetAccountId();
+        if (!accountId.HasValue)
+            return Unauthorized();
+
+        var account = await db.Accounts.FirstOrDefaultAsync(a => a.Id == accountId.Value);
+        if (account is null)
+            return Unauthorized();
+
+        if (request.NewPassword != request.ConfirmNewPassword)
+            return BadRequest("New passwords do not match.");
+
+        if (!VerifyPassword(request.CurrentPassword, account.PasswordHash))
+            return BadRequest("Current password is incorrect.");
+
+        if (VerifyPassword(request.NewPassword, account.PasswordHash))
+            return BadRequest("New password must be different from the current password.");
+
+        account.PasswordHash = HashPassword(request.NewPassword);
+        await db.SaveChangesAsync();
+
+        var jwt = jwtService.GenerateToken(account);
+        return new AuthResponse(account.DisplayName, account.Email, account.Token, jwt, account.EmailVerified);
+    }
+
+    [HttpPost("forgot-password")]
+    public async Task<IActionResult> ForgotPassword(ForgotPasswordRequest request)
+    {
+        var account = await db.Accounts.FirstOrDefaultAsync(a => a.Email == request.Email);
+
+        if (account is not null)
+        {
+            account.PasswordResetToken = GenerateToken();
+            account.PasswordResetTokenExpiry = DateTime.UtcNow.AddHours(1);
+            await db.SaveChangesAsync();
+
+            await emailService.SendPasswordResetAsync(account.Email, account.DisplayName, account.PasswordResetToken);
+        }
+
+        return Ok("If that email is registered, a password reset link has been sent.");
+    }
+
+    [HttpPost("reset-password")]
+    public async Task<IActionResult> ResetPassword(ResetPasswordRequest request)
+    {
+        if (request.NewPassword != request.ConfirmNewPassword)
+            return BadRequest("Passwords do not match.");
+
+        var account = await db.Accounts.FirstOrDefaultAsync(a => a.PasswordResetToken == request.Token);
+
+        if (account is null || account.PasswordResetTokenExpiry < DateTime.UtcNow)
+            return BadRequest("Invalid or expired reset link.");
+
+        account.PasswordHash = HashPassword(request.NewPassword);
+        account.PasswordResetToken = null;
+        account.PasswordResetTokenExpiry = null;
+        await db.SaveChangesAsync();
+
+        return Ok("Password reset successfully.");
+    }
+
+    private static string GenerateToken()
+        => Convert.ToHexString(RandomNumberGenerator.GetBytes(32));
 
     private static string HashPassword(string password)
     {
