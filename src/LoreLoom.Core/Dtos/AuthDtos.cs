@@ -21,6 +21,10 @@ public record UpdateDisplayNameRequest(
     [Required, MinLength(3), MaxLength(50)] string DisplayName
 );
 
+public record UpdateCultureRequest(
+    [Required] string Culture
+);
+
 public record ChangePasswordRequest(
     [Required] string CurrentPassword,
     [Required, MinLength(8)] string NewPassword,
@@ -42,5 +46,6 @@ public record AuthResponse(
     string Email,
     string Token,
     string? Jwt = null,
-    bool EmailVerified = true
+    bool EmailVerified = true,
+    string PreferredCulture = Localization.AppCultures.DefaultCulture
 );

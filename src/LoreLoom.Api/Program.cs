@@ -2,11 +2,13 @@ using System.Text;
 using LoreLoom.Api.Services;
 using LoreLoom.Core.Data;
 using LoreLoom.Core.Engine;
+using LoreLoom.Core.Localization;
 using LoreLoom.Core.Services;
 using Microsoft.Data.Sqlite;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using System.Globalization;
 
 var builder = WebApplication.CreateBuilder(new WebApplicationOptions
 {
@@ -22,6 +24,7 @@ if (int.TryParse(port, out var parsedPort))
 
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
+builder.Services.AddSingleton<IAppTextLocalizer, AppTextLocalizer>();
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
     ?? throw new InvalidOperationException("Connection string 'DefaultConnection' is not configured.");
@@ -105,8 +108,32 @@ using (var scope = app.Services.CreateScope())
     db.Database.Migrate();
 }
 
+var supportedCultureInfos = AppCultures.SupportedCultures
+    .Select(CultureInfo.GetCultureInfo)
+    .ToList();
+
+app.UseRequestLocalization(new RequestLocalizationOptions
+{
+    DefaultRequestCulture = new Microsoft.AspNetCore.Localization.RequestCulture(AppCultures.DefaultCulture),
+    SupportedCultures = supportedCultureInfos,
+    SupportedUICultures = supportedCultureInfos
+});
+
 app.UseCors();
 app.UseAuthentication();
+app.Use(async (context, next) =>
+{
+    var requestCulture = context.Request.Headers.TryGetValue("X-Culture", out var headerCulture)
+        ? headerCulture.ToString()
+        : context.User.FindFirst("preferred_culture")?.Value;
+
+    var normalizedCulture = AppCultures.Normalize(requestCulture);
+    var cultureInfo = CultureInfo.GetCultureInfo(normalizedCulture);
+    CultureInfo.CurrentCulture = cultureInfo;
+    CultureInfo.CurrentUICulture = cultureInfo;
+
+    await next();
+});
 app.UseAuthorization();
 
 app.UseBlazorFrameworkFiles();

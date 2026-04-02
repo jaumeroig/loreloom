@@ -1,3 +1,4 @@
+using LoreLoom.Core.Localization;
 using LoreLoom.Core.Models;
 using LoreLoom.Core.Services;
 
@@ -8,8 +9,10 @@ public static class ContextBuilder
     private const int SlidingWindowSize = 10;
     public const int SummaryInterval = 15;
 
-    public static string BuildSystemPrompt(Game game, string language)
+    public static string BuildSystemPrompt(Game game, string culture)
     {
+        var normalizedCulture = AppCultures.Normalize(culture);
+
         return $$"""
             You are the Dungeon Master of a tabletop RPG game.
 
@@ -52,7 +55,7 @@ public static class ContextBuilder
               ]
             }
 
-            LANGUAGE: Respond in {{language}}. All narrative text must be in {{language}}.
+            LANGUAGE: Respond in {{normalizedCulture}}. All narrative text must be in {{normalizedCulture}}.
             """;
     }
 
@@ -114,14 +117,15 @@ public static class ContextBuilder
         return messages;
     }
 
-    public static LlmRequest BuildSummaryRequest(Game game, List<Turn> turns, List<Player> players, string language)
+    public static LlmRequest BuildSummaryRequest(Game game, List<Turn> turns, List<Player> players, string culture)
     {
+        var normalizedCulture = AppCultures.Normalize(culture);
         var systemPrompt = $"""
             You are a session summarizer for a tabletop RPG game.
             Summarize the adventure so far in a concise but complete way.
             Include key events, decisions, NPC interactions, and current narrative state.
             Respond ONLY with the summary text, no JSON, no extra formatting.
-            Write in {language}.
+            Write in {normalizedCulture}.
             """;
 
         var messages = new List<LlmMessage>();

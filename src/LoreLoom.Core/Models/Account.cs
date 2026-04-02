@@ -7,6 +7,7 @@ public class Account
     public required string DisplayName { get; set; }
     public required string PasswordHash { get; set; }
     public string Token { get; set; } = Guid.NewGuid().ToString("N");
+    public string PreferredCulture { get; set; } = Localization.AppCultures.DefaultCulture;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     public bool EmailVerified { get; set; } = false;

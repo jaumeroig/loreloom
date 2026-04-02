@@ -2,8 +2,9 @@
 @inject LoreLoomApiClient Api
 @inject ISnackbar Snackbar
 @inject IJSRuntime Js
+@inject IAppTextLocalizer T
 
-<MudText Typo="Typo.h4" Class="mb-6">Game Results</MudText>
+<MudText Typo="Typo.h4" Class="mb-6">@T["result_title"]</MudText>
 
 @if (_loading)
 {
@@ -11,7 +12,7 @@
 }
 else if (_result is null)
 {
-    <MudAlert Severity="Severity.Warning" Variant="Variant.Outlined">Results not available yet.</MudAlert>
+    <MudAlert Severity="Severity.Warning" Variant="Variant.Outlined">@T["result_not_available"]</MudAlert>
 }
 else
 {
@@ -19,7 +20,7 @@ else
         <MudCardHeader>
             <div>
                 <MudText Typo="Typo.h5" Color="@(_result.Victory ? Color.Success : Color.Error)">
-                    @(_result.Victory ? "Victory!" : "Defeat!")
+                    @(_result.Victory ? T["gameplay_victory"] : T["gameplay_defeat"])
                 </MudText>
                 <MudText Typo="Typo.subtitle1" Style="color:#9A97B0;">@_result.GameTitle</MudText>
             </div>
@@ -31,7 +32,7 @@ else
                          Style="background:rgba(179,136,255,0.04);border:1px solid rgba(179,136,255,0.1);border-radius:12px;">
                     <MudText Typo="Typo.caption" Color="Color.Secondary"
                              Style="font-weight:600;letter-spacing:0.1em;text-transform:uppercase;" Class="mb-2">
-                        Chronicle
+                        @T["result_chronicle"]
                     </MudText>
                     <MudText Typo="Typo.body1" Style="color:#9A97B0;font-style:italic;line-height:1.7;">
                         @_result.Postmortem
@@ -42,11 +43,11 @@ else
             <MudTable Items="_result.Players" Hover="true" Elevation="0"
                       Style="background:transparent;">
                 <HeaderContent>
-                    <MudTh>Player</MudTh>
-                    <MudTh>Character</MudTh>
-                    <MudTh>Level</MudTh>
-                    <MudTh>XP Earned</MudTh>
-                    <MudTh>Points</MudTh>
+                    <MudTh>@T["result_player"]</MudTh>
+                    <MudTh>@T["result_character"]</MudTh>
+                    <MudTh>@T["result_level"]</MudTh>
+                    <MudTh>@T["result_xp_earned"]</MudTh>
+                    <MudTh>@T["result_points"]</MudTh>
                 </HeaderContent>
                 <RowTemplate>
                     <MudTd><b>@context.Name</b></MudTd>
@@ -54,12 +55,12 @@ else
                     <MudTd>@(context.CharacterLevel?.ToString() ?? "—")</MudTd>
                     <MudTd>
                         <MudChip T="string" Size="Size.Small" Color="Color.Info" Variant="Variant.Text">
-                            +@context.XpEarned XP
+                            @T.Format("result_xp_value", context.XpEarned)
                         </MudChip>
                     </MudTd>
                     <MudTd>
                         <MudChip T="string" Size="Size.Small" Color="Color.Primary" Variant="Variant.Text">
-                            +@context.PointsEarned pts
+                            @T.Format("result_points_value", context.PointsEarned)
                         </MudChip>
                     </MudTd>
                 </RowTemplate>
@@ -68,10 +69,10 @@ else
         <MudCardActions Class="pa-4 d-flex gap-3">
             <MudButton Variant="Variant.Outlined" Color="Color.Secondary" OnClick="ExportAsync"
                        StartIcon="@Icons.Material.Filled.Download" Style="border-radius:12px;">
-                Export Chronicle
+                @T["result_export"]
             </MudButton>
             <MudButton Variant="Variant.Text" Href="/games" Style="color:#9A97B0;">
-                Back to Games
+                @T["result_back_to_games"]
             </MudButton>
         </MudCardActions>
     </MudCard>
@@ -86,7 +87,7 @@ else
     protected override async Task OnInitializedAsync()
     {
         try { _result = await Api.GetResultAsync(GameId); }
-        catch (Exception ex) { Snackbar.Add($"Error: {ex.Message}", Severity.Error); }
+        catch (Exception ex) { Snackbar.Add(T.Format("common_error", ex.Message), Severity.Error); }
         finally { _loading = false; }
     }
 
@@ -95,15 +96,15 @@ else
         try
         {
             var markdown = await Api.ExportGameAsync(GameId);
-            if (markdown is null) { Snackbar.Add("Export not available.", Severity.Warning); return; }
+            if (markdown is null) { Snackbar.Add(T["result_export_unavailable"], Severity.Warning); return; }
 
             var bytes = System.Text.Encoding.UTF8.GetBytes(markdown);
             var base64 = Convert.ToBase64String(bytes);
             var fileName = $"loreloom-{_result?.GameTitle?.Replace(" ", "-").ToLower() ?? GameId.ToString()[..8]}.md";
             await Js.InvokeVoidAsync("eval",
                 $"var a=document.createElement('a');a.href='data:text/markdown;base64,{base64}';a.download='{fileName}';a.click();");
-            Snackbar.Add("Chronicle exported!", Severity.Success);
+            Snackbar.Add(T["result_exported"], Severity.Success);
         }
-        catch (Exception ex) { Snackbar.Add($"Error: {ex.Message}", Severity.Error); }
+        catch (Exception ex) { Snackbar.Add(T.Format("common_error", ex.Message), Severity.Error); }
     }
 }

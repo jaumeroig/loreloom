@@ -1,4 +1,5 @@
 using LoreLoom.Core.Enums;
+using LoreLoom.Core.Localization;
 using LoreLoom.Core.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -24,6 +25,7 @@ public class LoreLoomDbContext : DbContext
             e.Property(a => a.DisplayName).IsRequired().HasMaxLength(50);
             e.Property(a => a.PasswordHash).IsRequired();
             e.Property(a => a.Token).IsRequired().HasMaxLength(100);
+            e.Property(a => a.PreferredCulture).IsRequired().HasMaxLength(10).HasDefaultValue(AppCultures.DefaultCulture);
             e.HasIndex(a => a.Email).IsUnique();
             e.HasIndex(a => a.Token).IsUnique();
         });
@@ -47,6 +49,7 @@ public class LoreLoomDbContext : DbContext
             e.Property(g => g.CreatorToken).IsRequired().HasMaxLength(200);
             e.Property(g => g.Title).IsRequired().HasMaxLength(200);
             e.Property(g => g.Setting).IsRequired();
+            e.Property(g => g.Culture).IsRequired().HasMaxLength(10).HasDefaultValue(AppCultures.DefaultCulture);
             e.Property(g => g.ResourceName).IsRequired().HasMaxLength(200);
             e.Property(g => g.ResourcePct).HasDefaultValue(100);
             e.Property(g => g.Status)

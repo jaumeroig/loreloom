@@ -1,5 +1,6 @@
 using LoreLoom.Core.Data;
 using LoreLoom.Core.Enums;
+using LoreLoom.Core.Localization;
 using LoreLoom.Core.Models;
 using LoreLoom.Core.Services;
 using Microsoft.EntityFrameworkCore;
@@ -17,24 +18,31 @@ public class TurnResult
     public List<XpAward>? XpPerPlayer { get; init; }
 }
 
-public class TurnManager(LoreLoomDbContext db, ILlmService llm)
+public class TurnManager(LoreLoomDbContext db, ILlmService llm, IAppTextLocalizer text)
 {
-    public async Task<TurnResult> ProcessTurnAsync(Guid gameId, Guid playerId, string action, string language = "English")
+    public async Task<TurnResult> ProcessTurnAsync(Guid gameId, Guid playerId, string action, string? culture = null)
     {
         var game = await db.Games
             .FirstOrDefaultAsync(g => g.Id == gameId)
-            ?? throw new InvalidOperationException("Game not found.");
+            ?? throw new InvalidOperationException(text["api_game_not_found"]);
 
         if (game.Status != GameStatus.Active)
-            throw new InvalidOperationException("Game is not active.");
+            throw new InvalidOperationException(text["api_game_not_active"]);
 
         var player = await db.Players
             .Include(p => p.Character)
             .FirstOrDefaultAsync(p => p.Id == playerId && p.GameId == gameId)
-            ?? throw new InvalidOperationException("Player not found in this game.");
+            ?? throw new InvalidOperationException(text["api_player_not_found"]);
 
         if (!player.IsCurrentTurn)
-            throw new InvalidOperationException("It is not this player's turn.");
+            throw new InvalidOperationException(text["api_not_players_turn"]);
+
+        var resolvedCulture = AppCultures.Normalize(culture ?? game.Culture);
+        if (!string.Equals(game.Culture, resolvedCulture, StringComparison.Ordinal))
+        {
+            game.Culture = resolvedCulture;
+            game.SystemPrompt = null;
+        }
 
         var players = await db.Players
             .Include(p => p.Character)
@@ -47,7 +55,7 @@ public class TurnManager(LoreLoomDbContext db, ILlmService llm)
             .ToListAsync();
 
         // Build LLM request
-        var systemPrompt = game.SystemPrompt ?? ContextBuilder.BuildSystemPrompt(game, language);
+        var systemPrompt = game.SystemPrompt ?? ContextBuilder.BuildSystemPrompt(game, resolvedCulture);
         if (game.SystemPrompt is null)
         {
             game.SystemPrompt = systemPrompt;
@@ -95,7 +103,7 @@ public class TurnManager(LoreLoomDbContext db, ILlmService llm)
         var totalTurns = allTurns.Count + 1; // +1 for the turn we just added
         if (!gameOver && !victory && ContextBuilder.NeedsSummary(totalTurns, game.LastSummaryTurn))
         {
-            await GenerateSessionSummary(game, allTurns, players, language);
+            await GenerateSessionSummary(game, allTurns, players, resolvedCulture);
         }
 
         await db.SaveChangesAsync();

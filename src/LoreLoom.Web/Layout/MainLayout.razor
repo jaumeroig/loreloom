@@ -3,6 +3,7 @@
 @inject NavigationManager Nav
 @inject LoreLoomApiClient Api
 @inject ISnackbar Snackbar
+@inject IAppTextLocalizer T
 
 <AuthorizeView>
     <Authorized>
@@ -19,32 +20,32 @@
                                Size="Size.Small" />
             </MudAppBar>
 
-            <MudDrawer @bind-Open="_drawerOpen" Elevation="0" ClipMode="DrawerClipMode.Always">
-                <div class="nav-brand">
-                    <div class="nav-brand-title">LoreLoom</div>
-                    <div class="nav-brand-subtitle">Tabletop RPG</div>
-                </div>
+                <MudDrawer @bind-Open="_drawerOpen" Elevation="0" ClipMode="DrawerClipMode.Always">
+                    <div class="nav-brand">
+                        <div class="nav-brand-title">LoreLoom</div>
+                        <div class="nav-brand-subtitle">@T["layout_brand_subtitle"]</div>
+                    </div>
                 <MudNavMenu>
                     <MudNavLink Href="/games" Match="NavLinkMatch.All"
-                                Icon="@Icons.Material.Filled.SportsEsports">Games</MudNavLink>
+                                Icon="@Icons.Material.Filled.SportsEsports">@T["layout_nav_games"]</MudNavLink>
                     <MudNavLink Href="/games/create" Match="NavLinkMatch.All"
-                                Icon="@Icons.Material.Filled.Add">Create Game</MudNavLink>
+                                Icon="@Icons.Material.Filled.Add">@T["layout_nav_create_game"]</MudNavLink>
                     <MudNavLink Href="/characters" Match="NavLinkMatch.All"
-                                Icon="@Icons.Material.Filled.People">Characters</MudNavLink>
+                                Icon="@Icons.Material.Filled.People">@T["layout_nav_characters"]</MudNavLink>
                     <MudNavLink Href="/ranking" Match="NavLinkMatch.All"
-                                Icon="@Icons.Material.Filled.EmojiEvents">Ranking</MudNavLink>
+                                Icon="@Icons.Material.Filled.EmojiEvents">@T["layout_nav_ranking"]</MudNavLink>
                     <MudDivider Class="my-2 mx-4" Style="border-color:rgba(255,255,255,0.06);" />
                     <MudNavLink Href="/profile" Match="NavLinkMatch.All"
-                                Icon="@Icons.Material.Filled.Person">Profile</MudNavLink>
+                                Icon="@Icons.Material.Filled.Person">@T["layout_nav_profile"]</MudNavLink>
                 </MudNavMenu>
             </MudDrawer>
 
             @if (!Auth.EmailVerified)
             {
                 <MudAlert Severity="Severity.Warning" Class="mx-4 mt-2" Dense="true" ShowCloseIcon="false">
-                    Your email is not verified. Check your inbox or
+                    @T["layout_email_not_verified"]
                     <MudLink OnClick="ResendVerificationAsync" Color="Color.Warning" Style="cursor:pointer;text-decoration:underline;">
-                        resend verification email
+                        @T["layout_resend_verification"]
                     </MudLink>.
                 </MudAlert>
             }
@@ -76,11 +77,11 @@
         try
         {
             await Api.ResendVerificationAsync();
-            Snackbar.Add("Verification email sent. Check your inbox.", Severity.Success);
+            Snackbar.Add(T["layout_verification_sent"], Severity.Success);
         }
         catch
         {
-            Snackbar.Add("Could not send verification email.", Severity.Error);
+            Snackbar.Add(T["layout_verification_failed"], Severity.Error);
         }
     }
 }

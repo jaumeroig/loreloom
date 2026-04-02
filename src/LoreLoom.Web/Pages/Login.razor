@@ -3,33 +3,34 @@
 @inject AuthService Auth
 @inject NavigationManager Nav
 @inject ISnackbar Snackbar
+@inject IAppTextLocalizer T
 
 <div class="hero-section">
     <MudCard Class="auth-card" Style="width: 420px; max-width: 95vw;">
         <MudCardContent Class="pa-6">
             <div class="text-center mb-6">
                 <MudText Typo="Typo.h4" Color="Color.Primary" Style="letter-spacing:0.04em;">LoreLoom</MudText>
-                <MudText Typo="Typo.body2" Style="color:#9A97B0;" Class="mt-1">Welcome back, adventurer</MudText>
+                <MudText Typo="Typo.body2" Style="color:#9A97B0;" Class="mt-1">@T["login_welcome_back"]</MudText>
             </div>
-            <MudTextField @bind-Value="_email" Label="Email" Variant="Variant.Outlined"
+            <MudTextField @bind-Value="_email" Label="@(T["common_email"])" Variant="Variant.Outlined"
                           InputType="InputType.Email" Class="mb-4" Required="true"
                           Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Email" />
-            <MudTextField @bind-Value="_password" Label="Password" Variant="Variant.Outlined"
+            <MudTextField @bind-Value="_password" Label="@(T["common_password"])" Variant="Variant.Outlined"
                           InputType="InputType.Password" Class="mb-1" Required="true"
                           Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Lock"
                           OnKeyDown="OnKeyDown" />
             <div class="d-flex justify-end mb-3">
                 <MudLink Href="/forgot-password" Typo="Typo.body2" Color="Color.Secondary">
-                    Forgot password?
+                    @T["login_forgot_password"]
                 </MudLink>
             </div>
 
             @if (_showResendVerification)
             {
                 <MudAlert Severity="Severity.Warning" Dense="true" Class="mb-2">
-                    Your account still needs email verification.
+                    @T["login_needs_verification"]
                     <MudLink OnClick="ResendVerificationAsync" Color="Color.Warning" Style="cursor:pointer;text-decoration:underline;">
-                        Resend verification email
+                        @T["login_resend_verification"]
                     </MudLink>
                 </MudAlert>
             }
@@ -39,11 +40,11 @@
                        OnClick="LoginAsync" Disabled="_loading"
                        Style="border-radius:12px;height:48px;font-weight:600;">
                 @if (_loading) { <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" /> }
-                Log In
+                @T["common_log_in"]
             </MudButton>
             <MudText Typo="Typo.body2" Class="mt-4" Align="Align.Center" Style="color:#9A97B0;">
-                Don't have an account?
-                <MudLink Href="/register" Color="Color.Secondary">Sign up</MudLink>
+                @T["login_no_account"]
+                <MudLink Href="/register" Color="Color.Secondary">@T["common_sign_up"]</MudLink>
             </MudText>
         </MudCardActions>
     </MudCard>
@@ -65,7 +66,7 @@
     {
         if (string.IsNullOrWhiteSpace(_email) || string.IsNullOrWhiteSpace(_password))
         {
-            Snackbar.Add("Please fill in all fields.", Severity.Warning);
+            Snackbar.Add(T["login_fill_all_fields"], Severity.Warning);
             return;
         }
 
@@ -76,7 +77,7 @@
             var result = await Api.LoginAsync(new LoginRequest(_email, _password));
             if (result?.Jwt is not null)
             {
-                await Auth.LoginAsync(result.Jwt, result.DisplayName, result.Email, result.Token, result.EmailVerified);
+                await Auth.LoginAsync(result.Jwt, result.DisplayName, result.Email, result.Token, result.EmailVerified, result.PreferredCulture);
                 Nav.NavigateTo("/games");
             }
         }
@@ -85,12 +86,12 @@
             if (ex.StatusCode == System.Net.HttpStatusCode.Forbidden)
             {
                 _showResendVerification = true;
-                Snackbar.Add("Please verify your email address before logging in. Check your inbox.", Severity.Warning);
+                Snackbar.Add(T["login_verify_before"], Severity.Warning);
             }
             else if (ex.StatusCode == System.Net.HttpStatusCode.Unauthorized)
-                Snackbar.Add("Invalid email or password.", Severity.Error);
+                Snackbar.Add(T["login_invalid_credentials"], Severity.Error);
             else
-                Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+                Snackbar.Add(T.Format("common_error", ex.Message), Severity.Error);
         }
         finally
         {
@@ -105,7 +106,7 @@
 
         if (string.IsNullOrWhiteSpace(_email))
         {
-            Snackbar.Add("Enter your email address first.", Severity.Warning);
+            Snackbar.Add(T["login_enter_email_first"], Severity.Warning);
             return;
         }
 
@@ -113,11 +114,11 @@
         try
         {
             await Api.ResendVerificationAsync(_email);
-            Snackbar.Add("Verification email sent. Check your inbox.", Severity.Success);
+            Snackbar.Add(T["layout_verification_sent"], Severity.Success);
         }
         catch (HttpRequestException ex)
         {
-            Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+            Snackbar.Add(T.Format("common_error", ex.Message), Severity.Error);
         }
         finally
         {

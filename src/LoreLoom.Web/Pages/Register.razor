@@ -3,40 +3,40 @@
 @inject AuthService Auth
 @inject NavigationManager Nav
 @inject ISnackbar Snackbar
+@inject IAppTextLocalizer T
 
 <div class="hero-section">
     <MudCard Class="auth-card" Style="width: 420px; max-width: 95vw;">
         <MudCardContent Class="pa-6">
             <div class="text-center mb-6">
                 <MudText Typo="Typo.h4" Color="Color.Primary" Style="letter-spacing:0.04em;">LoreLoom</MudText>
-                <MudText Typo="Typo.body2" Style="color:#9A97B0;" Class="mt-1">Begin your adventure</MudText>
+                <MudText Typo="Typo.body2" Style="color:#9A97B0;" Class="mt-1">@T["register_begin_adventure"]</MudText>
             </div>
 
             @if (_registered)
             {
                 <MudAlert Severity="Severity.Success" Class="mb-2">
-                    Account created! We've sent a verification email to <strong>@_email</strong>.
-                    Please verify your email before logging in.
+                    @((MarkupString)T.Format("register_account_created", $"<strong>{_email}</strong>"))
                 </MudAlert>
                 <MudButton Variant="Variant.Outlined" Color="Color.Primary" FullWidth="true"
                            Href="/login" Style="border-radius:12px;margin-top:8px;">
-                    Go to Login
+                    @T["register_go_to_login"]
                 </MudButton>
             }
             else
             {
-                <MudTextField @bind-Value="_email" Label="Email" Variant="Variant.Outlined"
+                <MudTextField @bind-Value="_email" Label="@(T["common_email"])" Variant="Variant.Outlined"
                               InputType="InputType.Email" Class="mb-4" Required="true"
                               Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Email" />
-                <MudTextField @bind-Value="_displayName" Label="Nickname" Variant="Variant.Outlined"
+                <MudTextField @bind-Value="_displayName" Label="@(T["register_nickname"])" Variant="Variant.Outlined"
                               Class="mb-4" Required="true" Counter="50" MaxLength="50"
                               Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Badge"
-                              HelperText="Shown in-game to other players" />
-                <MudTextField @bind-Value="_password" Label="Password" Variant="Variant.Outlined"
+                              HelperText="@(T["register_nickname_helper"])" />
+                <MudTextField @bind-Value="_password" Label="@(T["common_password"])" Variant="Variant.Outlined"
                               InputType="InputType.Password" Class="mb-4" Required="true"
-                              HelperText="At least 8 characters"
+                              HelperText="@(T["register_password_min"])"
                               Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Lock" />
-                <MudTextField @bind-Value="_confirmPassword" Label="Confirm Password" Variant="Variant.Outlined"
+                <MudTextField @bind-Value="_confirmPassword" Label="@(T["register_confirm_password"])" Variant="Variant.Outlined"
                               InputType="InputType.Password"
                               Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Lock"
                               OnKeyDown="OnKeyDown" />
@@ -50,11 +50,11 @@
                            OnClick="RegisterAsync" Disabled="_loading"
                            Style="border-radius:12px;height:48px;font-weight:600;">
                     @if (_loading) { <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" /> }
-                    Create Account
+                    @T["register_create_account"]
                 </MudButton>
                 <MudText Typo="Typo.body2" Class="mt-4" Align="Align.Center" Style="color:#9A97B0;">
-                    Already have an account?
-                    <MudLink Href="/login" Color="Color.Secondary">Log in</MudLink>
+                    @T["register_have_account"]
+                    <MudLink Href="/login" Color="Color.Secondary">@T["common_log_in"]</MudLink>
                 </MudText>
             </MudCardActions>
         }
@@ -78,19 +78,19 @@
     {
         if (string.IsNullOrWhiteSpace(_email) || string.IsNullOrWhiteSpace(_displayName) || string.IsNullOrWhiteSpace(_password))
         {
-            Snackbar.Add("Please fill in all fields.", Severity.Warning);
+            Snackbar.Add(T["register_fill_all_fields"], Severity.Warning);
             return;
         }
 
         if (_password != _confirmPassword)
         {
-            Snackbar.Add("Passwords do not match.", Severity.Warning);
+            Snackbar.Add(T["register_passwords_no_match"], Severity.Warning);
             return;
         }
 
         if (_password.Length < 8)
         {
-            Snackbar.Add("Password must be at least 8 characters.", Severity.Warning);
+            Snackbar.Add(T["register_password_min"], Severity.Warning);
             return;
         }
 
@@ -106,8 +106,8 @@
         catch (HttpRequestException ex)
         {
             Snackbar.Add(ex.StatusCode == System.Net.HttpStatusCode.Conflict
-                ? "Email already registered."
-                : $"Error: {ex.Message}", Severity.Error);
+                ? T["api_email_registered"]
+                : T.Format("common_error", ex.Message), Severity.Error);
         }
         finally
         {
