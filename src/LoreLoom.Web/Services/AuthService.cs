@@ -1,6 +1,7 @@
 using System.Net.Http.Headers;
 using System.Security.Claims;
 using System.Text.Json;
+using LoreLoom.Core.Dtos;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.JSInterop;
 
@@ -71,6 +72,14 @@ public class AuthService : AuthenticationStateProvider
     {
         Language = language;
         await _js.InvokeVoidAsync("localStorage.setItem", "language", language);
+    }
+
+    public async Task UpdateSessionAsync(AuthResponse response)
+    {
+        if (string.IsNullOrWhiteSpace(response.Jwt))
+            throw new InvalidOperationException("JWT is required to update the authenticated session.");
+
+        await LoginAsync(response.Jwt, response.DisplayName, response.Email, response.Token);
     }
 
     public override async Task<AuthenticationState> GetAuthenticationStateAsync()

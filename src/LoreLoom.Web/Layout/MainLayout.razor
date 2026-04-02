@@ -5,7 +5,7 @@
 <AuthorizeView>
     <Authorized>
         <MudLayout>
-            <MudAppBar Elevation="0">
+            <MudAppBar Elevation="0" Fixed> 
                 <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start"
                                OnClick="ToggleDrawer" />
                 <MudSpacer />
@@ -37,7 +37,7 @@
                 </MudNavMenu>
             </MudDrawer>
 
-            <MudMainContent Class="pa-6" Style="min-height:100vh;">
+            <MudMainContent Class="layout-content pa-6" Style="min-height:100vh;">
                 @Body
             </MudMainContent>
         </MudLayout>
