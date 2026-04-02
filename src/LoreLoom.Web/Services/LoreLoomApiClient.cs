@@ -92,7 +92,6 @@ public class LoreLoomApiClient(HttpClient http)
     {
         var response = await http.DeleteAsync(path);
         response.EnsureSuccessStatusCode();
-        return await response.Content.ReadFromJsonAsync<T>(JsonOptions);
     }
   
     private async Task<T?> PutAsync<T>(string path, object body)
