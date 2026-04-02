@@ -77,20 +77,34 @@ public class AuthController(LoreLoomDbContext db, JwtService jwtService, IEmailS
         return Ok("Email verified successfully.");
     }
 
-    [Authorize]
     [HttpPost("resend-verification")]
-    public async Task<IActionResult> ResendVerification()
+    public async Task<IActionResult> ResendVerification(ResendVerificationRequest? request)
     {
-        var accountId = this.GetAccountId();
-        if (!accountId.HasValue)
-            return Unauthorized();
+        Account? account;
 
-        var account = await db.Accounts.FirstOrDefaultAsync(a => a.Id == accountId.Value);
-        if (account is null)
-            return Unauthorized();
+        if (User.Identity?.IsAuthenticated == true)
+        {
+            var accountId = this.GetAccountId();
+            if (!accountId.HasValue)
+                return Unauthorized();
 
-        if (account.EmailVerified)
-            return BadRequest("Email is already verified.");
+            account = await db.Accounts.FirstOrDefaultAsync(a => a.Id == accountId.Value);
+            if (account is null)
+                return Unauthorized();
+
+            if (account.EmailVerified)
+                return BadRequest("Email is already verified.");
+        }
+        else
+        {
+            var email = request?.Email?.Trim();
+            if (string.IsNullOrWhiteSpace(email))
+                return BadRequest("Email is required.");
+
+            account = await db.Accounts.FirstOrDefaultAsync(a => a.Email == email);
+            if (account is null || account.EmailVerified)
+                return Ok("If that email is registered and not yet verified, a verification email has been sent.");
+        }
 
         account.EmailVerificationToken = GenerateToken();
         account.EmailVerificationTokenExpiry = DateTime.UtcNow.AddHours(24);
@@ -98,7 +112,9 @@ public class AuthController(LoreLoomDbContext db, JwtService jwtService, IEmailS
 
         await emailService.SendEmailVerificationAsync(account.Email, account.DisplayName, account.EmailVerificationToken);
 
-        return Ok("Verification email sent.");
+        return Ok(User.Identity?.IsAuthenticated == true
+            ? "Verification email sent."
+            : "If that email is registered and not yet verified, a verification email has been sent.");
     }
 
     [Authorize]

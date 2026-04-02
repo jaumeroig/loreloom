@@ -29,8 +29,8 @@ public class LoreLoomApiClient(HttpClient http)
         return response.IsSuccessStatusCode;
     }
 
-    public async Task ResendVerificationAsync()
-        => await PostVoidAsync("auth/resend-verification");
+    public async Task ResendVerificationAsync(string? email = null)
+        => await PostVoidAsync("auth/resend-verification", email is null ? null : new ResendVerificationRequest(email));
 
     public async Task<AuthResponse?> ChangePasswordAsync(ChangePasswordRequest request)
         => await PutAsync<AuthResponse>("auth/profile/password", request);

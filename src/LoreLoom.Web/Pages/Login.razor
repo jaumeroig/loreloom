@@ -23,6 +23,16 @@
                     Forgot password?
                 </MudLink>
             </div>
+
+            @if (_showResendVerification)
+            {
+                <MudAlert Severity="Severity.Warning" Dense="true" Class="mb-2">
+                    Your account still needs email verification.
+                    <MudLink OnClick="ResendVerificationAsync" Color="Color.Warning" Style="cursor:pointer;text-decoration:underline;">
+                        Resend verification email
+                    </MudLink>
+                </MudAlert>
+            }
         </MudCardContent>
         <MudCardActions Class="d-flex flex-column pa-6 pt-0">
             <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth="true"
@@ -43,6 +53,8 @@
     private string _email = "";
     private string _password = "";
     private bool _loading;
+    private bool _resendingVerification;
+    private bool _showResendVerification;
 
     private async Task OnKeyDown(KeyboardEventArgs e)
     {
@@ -60,6 +72,7 @@
         _loading = true;
         try
         {
+            _showResendVerification = false;
             var result = await Api.LoginAsync(new LoginRequest(_email, _password));
             if (result?.Jwt is not null)
             {
@@ -70,7 +83,10 @@
         catch (HttpRequestException ex)
         {
             if (ex.StatusCode == System.Net.HttpStatusCode.Forbidden)
+            {
+                _showResendVerification = true;
                 Snackbar.Add("Please verify your email address before logging in. Check your inbox.", Severity.Warning);
+            }
             else if (ex.StatusCode == System.Net.HttpStatusCode.Unauthorized)
                 Snackbar.Add("Invalid email or password.", Severity.Error);
             else
@@ -79,6 +95,33 @@
         finally
         {
             _loading = false;
+        }
+    }
+
+    private async Task ResendVerificationAsync()
+    {
+        if (_resendingVerification)
+            return;
+
+        if (string.IsNullOrWhiteSpace(_email))
+        {
+            Snackbar.Add("Enter your email address first.", Severity.Warning);
+            return;
+        }
+
+        _resendingVerification = true;
+        try
+        {
+            await Api.ResendVerificationAsync(_email);
+            Snackbar.Add("Verification email sent. Check your inbox.", Severity.Success);
+        }
+        catch (HttpRequestException ex)
+        {
+            Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _resendingVerification = false;
         }
     }
 }
