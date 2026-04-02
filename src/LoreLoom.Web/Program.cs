@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Microsoft.AspNetCore.Components.Authorization;
+using LoreLoom.Core.Localization;
 using MudBlazor.Services;
 using LoreLoom.Web;
 using LoreLoom.Web.Services;
@@ -13,9 +14,12 @@ var apiBase = builder.Configuration["ApiBaseUrl"] ?? builder.HostEnvironment.Bas
 builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(apiBase) });
 
 builder.Services.AddMudServices();
+builder.Services.AddSingleton<IAppTextLocalizer, AppTextLocalizer>();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<AuthenticationStateProvider>(sp => sp.GetRequiredService<AuthService>());
 builder.Services.AddScoped<LoreLoomApiClient>();
 builder.Services.AddAuthorizationCore();
 
-await builder.Build().RunAsync();
+var host = builder.Build();
+await host.Services.GetRequiredService<AuthService>().InitializeAsync();
+await host.RunAsync();

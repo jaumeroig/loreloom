@@ -1,6 +1,7 @@
 using LoreLoom.Api.Extensions;
 using LoreLoom.Core.Data;
 using LoreLoom.Core.Dtos;
+using LoreLoom.Core.Localization;
 using LoreLoom.Core.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -9,14 +10,14 @@ namespace LoreLoom.Api.Controllers;
 
 [ApiController]
 [Route("[controller]")]
-public class CharactersController(LoreLoomDbContext db) : ControllerBase
+public class CharactersController(LoreLoomDbContext db, IAppTextLocalizer text) : ControllerBase
 {
     [HttpPost]
     public async Task<ActionResult<CharacterResponse>> Create(CreateCharacterRequest request)
     {
         var totalStats = request.Strength + request.Wit + request.Charisma;
         if (totalStats != 9)
-            return BadRequest("Stats must sum to 9 at creation (distribute 9 points across Strength, Wit, Charisma with each between 1-5).");
+            return BadRequest(text["api_stats_must_sum"]);
 
         var playerToken = this.GetAccountToken() ?? request.PlayerToken;
 

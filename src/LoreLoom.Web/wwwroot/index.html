@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en-US">
 
 <head>
     <meta charset="utf-8" />
@@ -35,6 +35,14 @@
         <a href="." class="reload">Reload</a>
         <span class="dismiss">&#x1F5D9;</span>
     </div>
+    <script>
+        window.loreLoom = {
+            getBrowserCulture: () => navigator.language || navigator.languages?.[0] || "en-US",
+            setDocumentLanguage: (culture) => {
+                document.documentElement.lang = culture || "en-US";
+            }
+        };
+    </script>
     <script src="_content/MudBlazor/MudBlazor.min.js"></script>
     <script src="_framework/blazor.webassembly.js"></script>
 </body>

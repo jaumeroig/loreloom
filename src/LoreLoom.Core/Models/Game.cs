@@ -8,6 +8,7 @@ public class Game
     public required string CreatorToken { get; set; }
     public required string Title { get; set; }
     public required string Setting { get; set; }
+    public string Culture { get; set; } = Localization.AppCultures.DefaultCulture;
     public string? SystemPrompt { get; set; }
     public required string ResourceName { get; set; }
     public int ResourcePct { get; set; } = 100;

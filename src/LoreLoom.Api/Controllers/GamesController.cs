@@ -3,6 +3,7 @@ using LoreLoom.Core.Data;
 using LoreLoom.Core.Dtos;
 using LoreLoom.Core.Engine;
 using LoreLoom.Core.Enums;
+using LoreLoom.Core.Localization;
 using LoreLoom.Core.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -11,7 +12,7 @@ namespace LoreLoom.Api.Controllers;
 
 [ApiController]
 [Route("[controller]")]
-public class GamesController(LoreLoomDbContext db, TurnManager turnManager) : ControllerBase
+public class GamesController(LoreLoomDbContext db, TurnManager turnManager, IAppTextLocalizer text) : ControllerBase
 {
     [HttpGet]
     public async Task<ActionResult<List<GameResponse>>> List(
@@ -57,6 +58,7 @@ public class GamesController(LoreLoomDbContext db, TurnManager turnManager) : Co
             CreatorToken = token,
             Title = request.Title,
             Setting = request.Setting,
+            Culture = AppCultures.Normalize(request.Culture),
             ResourceName = request.ResourceName,
             IsPublic = request.IsPublic,
             MaxPlayers = request.MaxPlayers,
@@ -90,19 +92,19 @@ public class GamesController(LoreLoomDbContext db, TurnManager turnManager) : Co
         if (game is null) return NotFound();
 
         if (game.Status != GameStatus.Waiting)
-            return BadRequest("Game has already started or finished.");
+            return BadRequest(text["api_game_started_or_finished"]);
 
         if (game.Players.Count >= game.MaxPlayers)
-            return BadRequest("Game is full.");
+            return BadRequest(text["api_game_full"]);
 
         if (!game.IsPublic && game.InviteCode != request.InviteCode)
-            return BadRequest("Invalid invite code.");
+            return BadRequest(text["api_invalid_invite_code"]);
 
         var token = this.GetAccountToken() ?? request.Token;
         var name = this.GetDisplayName() ?? request.Name;
 
         if (game.Players.Any(p => p.Token == token))
-            return BadRequest("You are already in this game.");
+            return BadRequest(text["api_already_in_game"]);
 
         var player = new Player
         {
@@ -129,17 +131,18 @@ public class GamesController(LoreLoomDbContext db, TurnManager turnManager) : Co
         if (game is null) return NotFound();
 
         if (game.Status != GameStatus.Waiting)
-            return BadRequest("Game has already started or finished.");
+            return BadRequest(text["api_game_started_or_finished"]);
 
         var token = this.GetAccountToken() ?? request.Token;
         if (string.IsNullOrWhiteSpace(game.CreatorToken))
-            return BadRequest("Unable to verify game ownership for this game.");
+            return BadRequest(text["api_game_owner_verification_failed"]);
 
         if (game.CreatorToken != token)
-            return BadRequest("Only the game creator can start the game.");
+            return BadRequest(text["api_only_creator_start"]);
 
+        game.Culture = AppCultures.Normalize(request.Culture);
         game.Status = GameStatus.Active;
-        game.SystemPrompt = ContextBuilder.BuildSystemPrompt(game, request.Language);
+        game.SystemPrompt = ContextBuilder.BuildSystemPrompt(game, game.Culture);
 
         await db.SaveChangesAsync();
 
@@ -151,16 +154,16 @@ public class GamesController(LoreLoomDbContext db, TurnManager turnManager) : Co
     {
         var token = this.GetAccountToken();
         if (string.IsNullOrWhiteSpace(token))
-            return Unauthorized("You must be logged in to delete games.");
+            return Unauthorized(text["api_login_required_delete"]);
 
         var game = await db.Games.FindAsync(id);
         if (game is null) return NotFound();
 
         if (string.IsNullOrWhiteSpace(game.CreatorToken))
-            return BadRequest("Unable to verify game ownership for this game.");
+            return BadRequest(text["api_game_owner_verification_failed"]);
 
         if (game.CreatorToken != token)
-            return BadRequest("Only the game creator can delete the game.");
+            return BadRequest(text["api_only_creator_delete"]);
 
         db.Games.Remove(game);
         await db.SaveChangesAsync();
@@ -180,11 +183,11 @@ public class GamesController(LoreLoomDbContext db, TurnManager turnManager) : Co
         var token = this.GetAccountToken() ?? request.Token;
         var player = game.Players.FirstOrDefault(p => p.Token == token);
         if (player is null)
-            return BadRequest("You are not in this game.");
+            return BadRequest(text["api_not_in_game"]);
 
         try
         {
-            var result = await turnManager.ProcessTurnAsync(id, player.Id, request.Action);
+            var result = await turnManager.ProcessTurnAsync(id, player.Id, request.Action, request.Culture);
 
             return new TurnResultResponse(
                 result.Narrative,
@@ -235,7 +238,7 @@ public class GamesController(LoreLoomDbContext db, TurnManager turnManager) : Co
         if (game is null) return NotFound();
 
         if (game.Status != GameStatus.Finished)
-            return BadRequest("Game has not finished yet.");
+            return BadRequest(text["api_game_not_finished"]);
 
         var lastTurn = await db.Turns
             .Where(t => t.GameId == id)
@@ -272,25 +275,26 @@ public class GamesController(LoreLoomDbContext db, TurnManager turnManager) : Co
         if (game is null) return NotFound();
 
         if (game.Status != GameStatus.Finished)
-            return BadRequest("Game has not finished yet.");
+            return BadRequest(text["api_game_not_finished"]);
 
         var victory = game.ResourcePct > 0;
-        var md = BuildMarkdownExport(game, victory);
+        var md = BuildMarkdownExport(game, victory, text);
 
         return Content(md, "text/markdown; charset=utf-8");
     }
 
-    private static string BuildMarkdownExport(Game game, bool victory)
+    private static string BuildMarkdownExport(Game game, bool victory, IAppTextLocalizer text)
     {
+        var culture = game.Culture;
         var lines = new List<string>
         {
             $"# {game.Title}",
-            $"*Setting: {game.Setting}*",
-            $"*Date: {game.CreatedAt:yyyy-MM-dd}*",
-            $"*Result: {(victory ? "Victory" : "Defeat")}*",
+            $"*{text.Get("export_setting", culture)}: {game.Setting}*",
+            $"*{text.Get("export_date", culture)}: {game.CreatedAt:yyyy-MM-dd}*",
+            $"*{text.Get("export_result", culture)}: {(victory ? text.Get("export_victory", culture) : text.Get("export_defeat", culture))}*",
             "",
-            "## Characters",
-            "| Player | Character | Level | XP earned |",
+            $"## {text.Get("export_characters", culture)}",
+            $"| {text.Get("export_player", culture)} | {text.Get("export_character", culture)} | {text.Get("export_level", culture)} | {text.Get("export_xp_earned", culture)} |",
             "|--------|-----------|-------|-----------|"
         };
 
@@ -302,14 +306,14 @@ public class GamesController(LoreLoomDbContext db, TurnManager turnManager) : Co
         }
 
         lines.Add("");
-        lines.Add("## Chronicle");
+        lines.Add($"## {text.Get("export_chronicle", culture)}");
         lines.Add("");
 
         foreach (var turn in game.Turns)
         {
             lines.Add($"**{turn.Player.Name}:** {turn.PlayerAction}");
             lines.Add("");
-            lines.Add($"**DM:** {turn.DmResponse}");
+            lines.Add($"**{text.Get("export_dm", culture)}:** {turn.DmResponse}");
             lines.Add("");
             lines.Add("---");
             lines.Add("");
@@ -319,7 +323,7 @@ public class GamesController(LoreLoomDbContext db, TurnManager turnManager) : Co
         var epilogue = game.Postmortem ?? game.Turns.LastOrDefault()?.DmResponse;
         if (!string.IsNullOrWhiteSpace(epilogue))
         {
-            lines.Add("## Epilogue");
+            lines.Add($"## {text.Get("export_epilogue", culture)}");
             lines.Add(epilogue);
         }
 
@@ -362,6 +366,7 @@ public class GamesController(LoreLoomDbContext db, TurnManager turnManager) : Co
             g.Id,
             g.Title,
             g.Setting,
+            g.Culture,
             g.ResourceName,
             g.ResourcePct,
             g.IsPublic,

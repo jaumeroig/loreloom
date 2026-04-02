@@ -1,15 +1,16 @@
 @page "/notfound"
+@inject IAppTextLocalizer T
 
 <div class="hero-section">
     <div class="hero-content">
         <MudText Typo="Typo.h1" Color="Color.Primary" Class="mb-2" Style="font-size:5rem;opacity:0.6;">
             404
         </MudText>
-        <MudText Typo="Typo.h5" Class="mb-2" Style="color:#9A97B0;">Page not found</MudText>
+        <MudText Typo="Typo.h5" Class="mb-2" Style="color:#9A97B0;">@T["notfound_title"]</MudText>
         <MudText Typo="Typo.body2" Class="mb-6" Style="color:#9A97B0;">
-            The scroll you seek has been lost to the ages.
+            @T["notfound_body"]
         </MudText>
         <MudButton Variant="Variant.Filled" Color="Color.Primary" Href="/"
-                   Style="border-radius:12px;">Go Home</MudButton>
+                   Style="border-radius:12px;">@T["notfound_go_home"]</MudButton>
     </div>
 </div>

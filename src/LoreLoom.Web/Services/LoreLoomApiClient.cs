@@ -2,10 +2,11 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using LoreLoom.Core.Dtos;
+using LoreLoom.Core.Localization;
 
 namespace LoreLoom.Web.Services;
 
-public class LoreLoomApiClient(HttpClient http)
+public class LoreLoomApiClient(HttpClient http, AuthService auth)
 {
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
@@ -23,9 +24,13 @@ public class LoreLoomApiClient(HttpClient http)
     public async Task<AuthResponse?> UpdateDisplayNameAsync(UpdateDisplayNameRequest request)
         => await PutAsync<AuthResponse>("auth/profile/display-name", request);
 
+    public async Task<AuthResponse?> UpdateCultureAsync(UpdateCultureRequest request)
+        => await PutAsync<AuthResponse>("auth/profile/culture", request);
+
     public async Task<bool> VerifyEmailAsync(string token)
     {
-        var response = await http.GetAsync($"auth/verify-email?token={Uri.EscapeDataString(token)}");
+        using var request = CreateRequest(HttpMethod.Get, $"auth/verify-email?token={Uri.EscapeDataString(token)}");
+        var response = await http.SendAsync(request);
         return response.IsSuccessStatusCode;
     }
 
@@ -83,7 +88,8 @@ public class LoreLoomApiClient(HttpClient http)
 
     public async Task<string?> ExportGameAsync(Guid gameId)
     {
-        var response = await http.GetAsync($"games/{gameId}/export");
+        using var request = CreateRequest(HttpMethod.Get, $"games/{gameId}/export");
+        var response = await http.SendAsync(request);
         if (!response.IsSuccessStatusCode) return null;
         return await response.Content.ReadAsStringAsync();
     }
@@ -94,27 +100,33 @@ public class LoreLoomApiClient(HttpClient http)
 
     private async Task<T?> GetAsync<T>(string path)
     {
-        var response = await http.GetAsync(path);
+        using var request = CreateRequest(HttpMethod.Get, path);
+        var response = await http.SendAsync(request);
         response.EnsureSuccessStatusCode();
         return await response.Content.ReadFromJsonAsync<T>(JsonOptions);
     }
 
     private async Task<T?> PostAsync<T>(string path, object body)
     {
-        var response = await http.PostAsJsonAsync(path, body, JsonOptions);
+        using var request = CreateRequest(HttpMethod.Post, path);
+        request.Content = JsonContent.Create(body, options: JsonOptions);
+        var response = await http.SendAsync(request);
         response.EnsureSuccessStatusCode();
         return await response.Content.ReadFromJsonAsync<T>(JsonOptions);
     }
 
     private async Task DeleteAsync(string path)
     {
-        var response = await http.DeleteAsync(path);
+        using var request = CreateRequest(HttpMethod.Delete, path);
+        var response = await http.SendAsync(request);
         response.EnsureSuccessStatusCode();
     }
   
     private async Task<T?> PutAsync<T>(string path, object body)
     {
-        var response = await http.PutAsJsonAsync(path, body, JsonOptions);
+        using var request = CreateRequest(HttpMethod.Put, path);
+        request.Content = JsonContent.Create(body, options: JsonOptions);
+        var response = await http.SendAsync(request);
         response.EnsureSuccessStatusCode();
         return await response.Content.ReadFromJsonAsync<T>(JsonOptions);
     }
@@ -123,9 +135,23 @@ public class LoreLoomApiClient(HttpClient http)
     {
         HttpResponseMessage response;
         if (body is null)
-            response = await http.PostAsync(path, null);
+        {
+            using var request = CreateRequest(HttpMethod.Post, path);
+            response = await http.SendAsync(request);
+        }
         else
-            response = await http.PostAsJsonAsync(path, body, JsonOptions);
+        {
+            using var request = CreateRequest(HttpMethod.Post, path);
+            request.Content = JsonContent.Create(body, options: JsonOptions);
+            response = await http.SendAsync(request);
+        }
         response.EnsureSuccessStatusCode();
+    }
+
+    private HttpRequestMessage CreateRequest(HttpMethod method, string path)
+    {
+        var request = new HttpRequestMessage(method, path);
+        request.Headers.TryAddWithoutValidation("X-Culture", AppCultures.Normalize(auth.Language));
+        return request;
     }
 }

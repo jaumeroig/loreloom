@@ -3,9 +3,10 @@
 @inject AuthService Auth
 @inject NavigationManager Nav
 @inject ISnackbar Snackbar
+@inject IAppTextLocalizer T
 @implements IDisposable
 
-<MudText Typo="Typo.h4" Class="mb-6">Game Lobby</MudText>
+<MudText Typo="Typo.h4" Class="mb-6">@T["lobby_title"]</MudText>
 
 @if (_game is null)
 {
@@ -25,7 +26,7 @@ else
                     </MudText>
 
                     <MudText Typo="Typo.subtitle2" Class="mb-2" Style="color:#9A97B0;">
-                        Players (@_game.PlayerCount / @_game.MaxPlayers)
+                        @T.Format("lobby_players_count", _game.PlayerCount, _game.MaxPlayers)
                     </MudText>
 
                     <MudList T="string" Dense="true">
@@ -37,7 +38,7 @@ else
                                     @if (p.IsCreator)
                                     {
                                         <MudChip T="string" Size="Size.Small" Color="Color.Primary"
-                                                 Variant="Variant.Text">Creator</MudChip>
+                                                 Variant="Variant.Text">@T["lobby_creator"]</MudChip>
                                     }
                                 </div>
                             </MudListItem>
@@ -48,11 +49,11 @@ else
                     {
                         <div class="mt-4 pa-4" style="background:rgba(240,185,82,0.04);border-radius:12px;text-align:center;">
                             <MudText Typo="Typo.caption" Style="color:#9A97B0;letter-spacing:0.1em;text-transform:uppercase;" Class="mb-2">
-                                Invite Code
+                                @T["lobby_invite_code"]
                             </MudText>
                             <div class="invite-code">@_game.InviteCode</div>
                             <MudText Typo="Typo.caption" Style="color:#9A97B0;" Class="mt-2">
-                                Share this with friends to let them join
+                                @T["lobby_share_invite"]
                             </MudText>
                         </div>
                     }
@@ -60,7 +61,7 @@ else
                     @if (_game.Status == GameStatus.Active)
                     {
                         <MudAlert Severity="Severity.Success" Class="mt-4" Variant="Variant.Outlined">
-                            Game has started!
+                            @T["lobby_started"]
                         </MudAlert>
                     }
                 </MudCardContent>
@@ -71,17 +72,17 @@ else
                                    Disabled="_starting" StartIcon="@Icons.Material.Filled.PlayArrow"
                                    Style="border-radius:12px;">
                             @if (_starting) { <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" /> }
-                            Start Game
+                            @T["lobby_start_game"]
                         </MudButton>
                         <MudButton Variant="Variant.Text" Color="Color.Error" OnClick="OpenDeleteDialog"
                                     Disabled="_deleting" StartIcon="@Icons.Material.Filled.DeleteOutline">
-                            Delete Game
+                            @T["lobby_delete_game"]
                         </MudButton>
                     }
                     else if (_game.Status == GameStatus.Waiting)
                     {
                         <MudText Typo="Typo.body2" Style="color:#9A97B0;">
-                            Waiting for the creator to start the game...
+                            @T["lobby_waiting_creator"]
                         </MudText>
                     }
                 </MudCardActions>
@@ -92,18 +93,18 @@ else
 
 <MudDialog @bind-Visible="_showDeleteDialog">
     <TitleContent>
-        <MudText Typo="Typo.h6">Delete Game</MudText>
+        <MudText Typo="Typo.h6">@T["games_delete_title"]</MudText>
     </TitleContent>
     <DialogContent>
         <MudText>
-            Are you sure you want to delete "@_game?.Title"? This action cannot be undone.
+            @T.Format("games_delete_confirmation", _game?.Title ?? string.Empty)
         </MudText>
     </DialogContent>
     <DialogActions>
-        <MudButton OnClick="CloseDeleteDialog">Cancel</MudButton>
+        <MudButton OnClick="CloseDeleteDialog">@T["common_cancel"]</MudButton>
         <MudButton Variant="Variant.Filled" Color="Color.Error" OnClick="DeleteGameAsync"
                    Disabled="_deleting" Style="border-radius:10px;">
-            Delete
+            @T["common_delete"]
         </MudButton>
     </DialogActions>
 </MudDialog>
@@ -152,7 +153,7 @@ else
             await Api.StartGameAsync(GameId, request);
             Nav.NavigateTo($"/games/{GameId}");
         }
-        catch (Exception ex) { Snackbar.Add($"Error: {ex.Message}", Severity.Error); }
+        catch (Exception ex) { Snackbar.Add(T.Format("common_error", ex.Message), Severity.Error); }
         finally { _starting = false; }
     }
 
@@ -163,10 +164,10 @@ else
         {
             await Api.DeleteGameAsync(GameId);
             CloseDeleteDialog();
-            Snackbar.Add("Game deleted.", Severity.Success);
+            Snackbar.Add(T["games_deleted"], Severity.Success);
             Nav.NavigateTo("/games");
         }
-        catch (Exception ex) { Snackbar.Add($"Error: {ex.Message}", Severity.Error); }
+        catch (Exception ex) { Snackbar.Add(T.Format("common_error", ex.Message), Severity.Error); }
         finally { _deleting = false; }
     }
 

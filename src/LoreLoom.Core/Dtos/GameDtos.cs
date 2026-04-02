@@ -12,7 +12,7 @@ public record CreateGameRequest(
     Guid? CharacterId,
     bool IsPublic = true,
     int MaxPlayers = 4,
-    string Language = "English"
+    string Culture = Localization.AppCultures.DefaultCulture
 );
 
 public record JoinGameRequest(
@@ -24,13 +24,14 @@ public record JoinGameRequest(
 
 public record StartGameRequest(
     [Required] string Token,
-    string Language = "English"
+    string Culture = Localization.AppCultures.DefaultCulture
 );
 
 public record GameResponse(
     Guid Id,
     string Title,
     string Setting,
+    string Culture,
     string ResourceName,
     int ResourcePct,
     bool IsPublic,
@@ -53,7 +54,8 @@ public record PlayerResponse(
 
 public record SendTurnRequest(
     [Required] string Token,
-    [Required] string Action
+    [Required] string Action,
+    string Culture = Localization.AppCultures.DefaultCulture
 );
 
 public record TurnResponse(

@@ -1,8 +1,9 @@
 @page "/ranking"
 @inject LoreLoomApiClient Api
 @inject ISnackbar Snackbar
+@inject IAppTextLocalizer T
 
-<MudText Typo="Typo.h4" Class="mb-6">Global Ranking</MudText>
+<MudText Typo="Typo.h4" Class="mb-6">@T["ranking_title"]</MudText>
 
 @if (_loading)
 {
@@ -11,7 +12,7 @@
 else if (_ranking.Count == 0)
 {
     <MudAlert Severity="Severity.Info" Variant="Variant.Outlined">
-        No rankings yet. Play a game to appear here!
+        @T["ranking_empty"]
     </MudAlert>
 }
 else
@@ -20,11 +21,11 @@ else
         <MudTable Items="_ranking" Hover="true" Elevation="0" Dense="true"
                   Style="background:transparent;">
             <HeaderContent>
-                <MudTh>Rank</MudTh>
-                <MudTh>Player</MudTh>
-                <MudTh>Character</MudTh>
-                <MudTh>Points</MudTh>
-                <MudTh>Games</MudTh>
+                <MudTh>@T["ranking_rank"]</MudTh>
+                <MudTh>@T["ranking_player"]</MudTh>
+                <MudTh>@T["ranking_character"]</MudTh>
+                <MudTh>@T["ranking_points"]</MudTh>
+                <MudTh>@T["ranking_games"]</MudTh>
             </HeaderContent>
             <RowTemplate>
                 <MudTd>
@@ -66,7 +67,7 @@ else
     protected override async Task OnInitializedAsync()
     {
         try { _ranking = await Api.GetRankingAsync(); }
-        catch (Exception ex) { Snackbar.Add($"Error: {ex.Message}", Severity.Error); }
+        catch (Exception ex) { Snackbar.Add(T.Format("common_error", ex.Message), Severity.Error); }
         finally { _loading = false; }
     }
 }

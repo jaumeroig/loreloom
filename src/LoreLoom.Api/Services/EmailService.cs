@@ -1,19 +1,21 @@
 using MailKit.Net.Smtp;
 using MailKit.Security;
+using LoreLoom.Core.Localization;
 using Microsoft.Extensions.Options;
 using MimeKit;
 
 namespace LoreLoom.Api.Services;
 
-public class EmailService(IOptions<EmailOptions> options, ILogger<EmailService> logger) : IEmailService
+public class EmailService(IOptions<EmailOptions> options, ILogger<EmailService> logger, IAppTextLocalizer text) : IEmailService
 {
     private readonly EmailOptions _options = options.Value;
 
     private bool IsConfigured => !string.IsNullOrWhiteSpace(_options.SmtpHost);
 
-    public async Task SendEmailVerificationAsync(string toEmail, string displayName, string token)
+    public async Task SendEmailVerificationAsync(string toEmail, string displayName, string token, string? culture = null)
     {
         var verifyUrl = $"{_options.BaseUrl}/verify-email?token={Uri.EscapeDataString(token)}";
+        var resolvedCulture = AppCultures.Normalize(culture);
 
         if (!IsConfigured)
         {
@@ -25,24 +27,25 @@ public class EmailService(IOptions<EmailOptions> options, ILogger<EmailService> 
 
         var body = $"""
             <html><body style="font-family:sans-serif;max-width:600px;margin:auto;">
-              <h2 style="color:#7B68EE;">Welcome to LoreLoom, {displayName}!</h2>
-              <p>Please verify your email address to activate your account.</p>
+              <h2 style="color:#7B68EE;">{text.FormatForCulture(resolvedCulture, "email_verify_heading", displayName)}</h2>
+              <p>{text.Get("email_verify_body", resolvedCulture)}</p>
               <p>
                 <a href="{verifyUrl}"
                    style="background:#7B68EE;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;display:inline-block;">
-                  Verify Email
+                  {text.Get("email_verify_button", resolvedCulture)}
                 </a>
               </p>
-              <p style="color:#888;font-size:0.85em;">This link expires in 24 hours. If you didn't create a LoreLoom account, you can ignore this email.</p>
+              <p style="color:#888;font-size:0.85em;">{text.Get("email_verify_footer", resolvedCulture)}</p>
             </body></html>
             """;
 
-        await SendAsync(toEmail, displayName, "Verify your LoreLoom email", body);
+        await SendAsync(toEmail, displayName, text.Get("email_verify_subject", resolvedCulture), body);
     }
 
-    public async Task SendPasswordResetAsync(string toEmail, string displayName, string token)
+    public async Task SendPasswordResetAsync(string toEmail, string displayName, string token, string? culture = null)
     {
         var resetUrl = $"{_options.BaseUrl}/reset-password?token={Uri.EscapeDataString(token)}";
+        var resolvedCulture = AppCultures.Normalize(culture);
 
         if (!IsConfigured)
         {
@@ -54,19 +57,19 @@ public class EmailService(IOptions<EmailOptions> options, ILogger<EmailService> 
 
         var body = $"""
             <html><body style="font-family:sans-serif;max-width:600px;margin:auto;">
-              <h2 style="color:#7B68EE;">Reset your LoreLoom password</h2>
-              <p>Hi {displayName}, we received a request to reset your password.</p>
+              <h2 style="color:#7B68EE;">{text.Get("email_reset_heading", resolvedCulture)}</h2>
+              <p>{text.FormatForCulture(resolvedCulture, "email_reset_body", displayName)}</p>
               <p>
                 <a href="{resetUrl}"
                    style="background:#7B68EE;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;display:inline-block;">
-                  Reset Password
+                  {text.Get("email_reset_button", resolvedCulture)}
                 </a>
               </p>
-              <p style="color:#888;font-size:0.85em;">This link expires in 1 hour. If you didn't request a password reset, you can ignore this email.</p>
+              <p style="color:#888;font-size:0.85em;">{text.Get("email_reset_footer", resolvedCulture)}</p>
             </body></html>
             """;
 
-        await SendAsync(toEmail, displayName, "Reset your LoreLoom password", body);
+        await SendAsync(toEmail, displayName, text.Get("email_reset_subject", resolvedCulture), body);
     }
 
     private async Task SendAsync(string toEmail, string toName, string subject, string htmlBody)

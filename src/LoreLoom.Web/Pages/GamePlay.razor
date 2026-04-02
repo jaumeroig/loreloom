@@ -3,6 +3,7 @@
 @inject AuthService Auth
 @inject NavigationManager Nav
 @inject ISnackbar Snackbar
+@inject IAppTextLocalizer T
 @implements IDisposable
 
 @if (_game is null)
@@ -38,10 +39,10 @@
                 {
                     <MudAlert Severity="@(_game.ResourcePct > 0 ? Severity.Success : Severity.Error)"
                               Class="mb-4" Variant="Variant.Outlined">
-                        <b>@(_game.ResourcePct > 0 ? "Victory!" : "Defeat!")</b> The adventure has ended.
+                        <b>@(_game.ResourcePct > 0 ? T["gameplay_victory"] : T["gameplay_defeat"])</b> @T["gameplay_adventure_ended"]
                         <MudButton Variant="Variant.Text" Color="Color.Inherit" Href="@($"/games/{GameId}/result")"
                                    Size="Size.Small" Class="ml-2">
-                            View Results
+                            @T["gameplay_view_results"]
                         </MudButton>
                     </MudAlert>
                 }
@@ -73,10 +74,10 @@
                 <MudCardContent>
                     <MudText Typo="Typo.subtitle1" Color="Color.Secondary" Class="mb-3"
                              Style="font-weight:600;">
-                        It's your turn! What do you do?
+                        @T["gameplay_turn_prompt"]
                     </MudText>
                     <MudTextField @bind-Value="_action" Variant="Variant.Outlined" Lines="3"
-                                  Placeholder="Describe your action..."
+                                  Placeholder="@(T["gameplay_action_placeholder"])"
                                   Disabled="_sending" />
                 </MudCardContent>
                 <MudCardActions Class="pa-4">
@@ -85,7 +86,7 @@
                                StartIcon="@Icons.Material.Filled.Send"
                                Style="border-radius:12px;">
                         @if (_sending) { <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" /> }
-                        Send Action
+                        @T["gameplay_send_action"]
                     </MudButton>
                 </MudCardActions>
             </MudCard>
@@ -93,7 +94,7 @@
         else if (_game.Status == GameStatus.Active)
         {
             <MudAlert Severity="Severity.Info" Variant="Variant.Outlined">
-                Waiting for <b>@CurrentTurnPlayer</b> to take their turn...
+                @((MarkupString)T.Format("gameplay_waiting_turn", $"<b>{CurrentTurnPlayer}</b>"))
             </MudAlert>
         }
     </MudItem>
@@ -102,7 +103,7 @@
     <MudItem xs="12" md="4">
         <MudCard Elevation="0" Class="glass-card">
             <MudCardHeader>
-                <MudText Typo="Typo.h6">Players</MudText>
+                <MudText Typo="Typo.h6">@T["gameplay_players"]</MudText>
             </MudCardHeader>
             <MudCardContent>
                 <MudList T="string" Dense="true">
@@ -121,7 +122,7 @@
                                 @if (p.IsCurrentTurn)
                                 {
                                     <MudChip T="string" Size="Size.Small" Color="Color.Secondary"
-                                             Variant="Variant.Text">Turn</MudChip>
+                                               Variant="Variant.Text">@T["gameplay_turn_chip"]</MudChip>
                                 }
                             </div>
                         </MudListItem>
@@ -176,7 +177,7 @@
         _sending = true;
         try
         {
-            var request = new SendTurnRequest(Auth.AccountToken ?? "", _action);
+            var request = new SendTurnRequest(Auth.AccountToken ?? "", _action, Auth.Language);
             var result = await Api.SendTurnAsync(GameId, request);
             _action = "";
             await RefreshAsync();
@@ -184,11 +185,11 @@
             if (result?.GameOver == true)
             {
                 _pollTimer?.Dispose();
-                Snackbar.Add(result.Victory ? "Victory!" : "Defeat!",
+                Snackbar.Add(result.Victory ? T["gameplay_victory"] : T["gameplay_defeat"],
                     result.Victory ? Severity.Success : Severity.Error);
             }
         }
-        catch (Exception ex) { Snackbar.Add($"Error: {ex.Message}", Severity.Error); }
+        catch (Exception ex) { Snackbar.Add(T.Format("common_error", ex.Message), Severity.Error); }
         finally { _sending = false; }
     }
 

@@ -1,6 +1,7 @@
 @page "/"
 @inject AuthService Auth
 @inject NavigationManager Nav
+@inject IAppTextLocalizer T
 
 @if (_initialized && Auth.Jwt is not null)
 {
@@ -11,26 +12,25 @@
 <div class="hero-section">
     <div class="hero-content">
         <MudText Typo="Typo.overline" Style="color:#B388FF;letter-spacing:0.25em;font-size:0.85rem;" Class="mb-2">
-            AI-Powered Tabletop RPG
+            @T["landing_overline"]
         </MudText>
         <MudText Typo="Typo.h2" Color="Color.Primary" GutterBottom="true" Style="letter-spacing:0.04em;">
             LoreLoom
         </MudText>
         <MudText Typo="Typo.body1" Class="mb-8" Style="color:#9A97B0;max-width:480px;margin:0 auto;line-height:1.7;">
-            Create your character, join a party, and let the AI Dungeon Master weave your story.
-            Every action shapes the narrative — will your party survive?
+            @T["landing_body"]
         </MudText>
 
         <div class="d-flex justify-center gap-4 mb-10">
             <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Large"
                        Href="/login" StartIcon="@Icons.Material.Filled.Login"
                        Style="border-radius:12px;padding:12px 32px;font-weight:600;">
-                Log In
+                @T["common_log_in"]
             </MudButton>
             <MudButton Variant="Variant.Outlined" Color="Color.Secondary" Size="Size.Large"
                        Href="/register" StartIcon="@Icons.Material.Filled.PersonAdd"
                        Style="border-radius:12px;padding:12px 32px;font-weight:600;">
-                Sign Up
+                @T["common_sign_up"]
             </MudButton>
         </div>
 
@@ -38,27 +38,27 @@
             <MudItem xs="12" sm="4">
                 <div class="feature-card">
                     <span class="feature-icon">&#x2694;&#xFE0F;</span>
-                    <MudText Typo="Typo.h6" Color="Color.Primary" Class="mb-2">Create</MudText>
+                    <MudText Typo="Typo.h6" Color="Color.Primary" Class="mb-2">@T["landing_feature_create_title"]</MudText>
                     <MudText Typo="Typo.body2" Style="color:#9A97B0;">
-                        Build unique characters with Strength, Wit & Charisma
+                        @T["landing_feature_create_body"]
                     </MudText>
                 </div>
             </MudItem>
             <MudItem xs="12" sm="4">
                 <div class="feature-card">
                     <span class="feature-icon">&#x1F916;</span>
-                    <MudText Typo="Typo.h6" Color="Color.Secondary" Class="mb-2">Play</MudText>
+                    <MudText Typo="Typo.h6" Color="Color.Secondary" Class="mb-2">@T["landing_feature_play_title"]</MudText>
                     <MudText Typo="Typo.body2" Style="color:#9A97B0;">
-                        An AI Dungeon Master narrates your adventure in real time
+                        @T["landing_feature_play_body"]
                     </MudText>
                 </div>
             </MudItem>
             <MudItem xs="12" sm="4">
                 <div class="feature-card">
                     <span class="feature-icon">&#x1F3C6;</span>
-                    <MudText Typo="Typo.h6" Color="Color.Tertiary" Class="mb-2">Compete</MudText>
+                    <MudText Typo="Typo.h6" Color="Color.Tertiary" Class="mb-2">@T["landing_feature_compete_title"]</MudText>
                     <MudText Typo="Typo.body2" Style="color:#9A97B0;">
-                        Earn XP, level up, and climb the global ranking
+                        @T["landing_feature_compete_body"]
                     </MudText>
                 </div>
             </MudItem>

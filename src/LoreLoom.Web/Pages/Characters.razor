@@ -2,13 +2,14 @@
 @inject LoreLoomApiClient Api
 @inject AuthService Auth
 @inject ISnackbar Snackbar
+@inject IAppTextLocalizer T
 
 <div class="d-flex align-center justify-space-between flex-wrap gap-4 mb-6">
-    <MudText Typo="Typo.h4">My Characters</MudText>
+    <MudText Typo="Typo.h4">@T["characters_title"]</MudText>
     <MudButton Variant="Variant.Filled" Color="Color.Primary"
                OnClick="() => _showCreate = true" StartIcon="@Icons.Material.Filled.Add"
                Style="border-radius:12px;">
-        Create Character
+        @T["characters_create_button"]
     </MudButton>
 </div>
 
@@ -19,7 +20,7 @@
 else if (_characters.Count == 0)
 {
     <MudAlert Severity="Severity.Info" Variant="Variant.Outlined">
-        You don't have any characters yet. Create one to get started!
+        @T["characters_empty"]
     </MudAlert>
 }
 else
@@ -49,10 +50,10 @@ else
                         </div>
                         <div class="d-flex align-center gap-2 mb-1">
                             <MudText Typo="Typo.body2" Style="color:#9A97B0;">
-                                Level @c.Level
+                                @T.Format("characters_level", c.Level)
                             </MudText>
                             <MudText Typo="Typo.caption" Style="color:#9A97B0;">
-                                @c.Xp / @(c.Xp + c.XpToNextLevel) XP
+                                @T.Format("characters_xp", c.Xp, c.Xp + c.XpToNextLevel)
                             </MudText>
                         </div>
                         <MudProgressLinear Value="@GetXpPercent(c)" Color="Color.Secondary" Class="mt-1"
@@ -67,38 +68,38 @@ else
 @* Create Character Dialog *@
 <MudDialog @bind-Visible="_showCreate">
     <TitleContent>
-        <MudText Typo="Typo.h6">Create Character</MudText>
+        <MudText Typo="Typo.h6">@T["characters_create_dialog_title"]</MudText>
     </TitleContent>
     <DialogContent>
-        <MudTextField @bind-Value="_newName" Label="Name" Variant="Variant.Outlined" Class="mb-4"
+        <MudTextField @bind-Value="_newName" Label="@(T["characters_name"])" Variant="Variant.Outlined" Class="mb-4"
                       Required="true" MaxLength="100"
                       Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Badge" />
-        <MudTextField @bind-Value="_newBackstory" Label="Backstory (optional)" Variant="Variant.Outlined"
+        <MudTextField @bind-Value="_newBackstory" Label="@(T["characters_backstory"])" Variant="Variant.Outlined"
                       Class="mb-4" Lines="3" />
 
         <MudText Typo="Typo.subtitle2" Class="mb-3">
-            Stats — must sum to 9, each 1-5:
+            @T["characters_stats_requirement"]
             <MudChip T="string" Size="Size.Small" Variant="Variant.Text"
                      Color="@(_newStr + _newWit + _newCha == 9 ? Color.Success : Color.Error)">
                 @(_newStr + _newWit + _newCha)/9
             </MudChip>
         </MudText>
         <MudSlider @bind-Value="_newStr" Min="1" Max="5" Step="1" Color="Color.Error" Class="mb-2">
-            Strength: @_newStr
+            @T["characters_strength"]: @_newStr
         </MudSlider>
         <MudSlider @bind-Value="_newWit" Min="1" Max="5" Step="1" Color="Color.Info" Class="mb-2">
-            Wit: @_newWit
+            @T["characters_wit"]: @_newWit
         </MudSlider>
         <MudSlider @bind-Value="_newCha" Min="1" Max="5" Step="1" Color="Color.Warning" Class="mb-2">
-            Charisma: @_newCha
+            @T["characters_charisma"]: @_newCha
         </MudSlider>
     </DialogContent>
     <DialogActions>
-        <MudButton OnClick="() => _showCreate = false">Cancel</MudButton>
+        <MudButton OnClick="() => _showCreate = false">@T["common_cancel"]</MudButton>
         <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="CreateCharacterAsync"
                    Disabled="@(_newStr + _newWit + _newCha != 9 || string.IsNullOrWhiteSpace(_newName))"
                    Style="border-radius:10px;">
-            Create
+            @T["common_create"]
         </MudButton>
     </DialogActions>
 </MudDialog>
@@ -128,7 +129,7 @@ else
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Error loading characters: {ex.Message}", Severity.Error);
+            Snackbar.Add(T.Format("characters_load_error", ex.Message), Severity.Error);
         }
         finally
         {
@@ -143,7 +144,7 @@ else
             var request = new CreateCharacterRequest(
                 Auth.AccountToken ?? "", _newName, _newBackstory, _newStr, _newWit, _newCha);
             await Api.CreateCharacterAsync(request);
-            Snackbar.Add($"{_newName} created!", Severity.Success);
+            Snackbar.Add(T.Format("characters_create_success", _newName), Severity.Success);
             _showCreate = false;
             _newName = "";
             _newBackstory = "";
@@ -152,7 +153,7 @@ else
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+            Snackbar.Add(T.Format("common_error", ex.Message), Severity.Error);
         }
     }
 
