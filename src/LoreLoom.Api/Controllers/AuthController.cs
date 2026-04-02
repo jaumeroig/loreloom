@@ -1,9 +1,11 @@
 using System.Security.Cryptography;
 using System.Text;
+using LoreLoom.Api.Extensions;
 using LoreLoom.Api.Services;
 using LoreLoom.Core.Data;
 using LoreLoom.Core.Dtos;
 using LoreLoom.Core.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -44,6 +46,25 @@ public class AuthController(LoreLoomDbContext db, JwtService jwtService) : Contr
 
         if (!VerifyPassword(request.Password, account.PasswordHash))
             return Unauthorized("Invalid email or password.");
+
+        var jwt = jwtService.GenerateToken(account);
+        return new AuthResponse(account.DisplayName, account.Email, account.Token, jwt);
+    }
+
+    [Authorize]
+    [HttpPut("profile/display-name")]
+    public async Task<ActionResult<AuthResponse>> UpdateDisplayName(UpdateDisplayNameRequest request)
+    {
+        var accountId = this.GetAccountId();
+        if (!accountId.HasValue)
+            return Unauthorized();
+
+        var account = await db.Accounts.FirstOrDefaultAsync(a => a.Id == accountId.Value);
+        if (account is null)
+            return Unauthorized();
+
+        account.DisplayName = request.DisplayName.Trim();
+        await db.SaveChangesAsync();
 
         var jwt = jwtService.GenerateToken(account);
         return new AuthResponse(account.DisplayName, account.Email, account.Token, jwt);

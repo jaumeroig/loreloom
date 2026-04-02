@@ -13,6 +13,10 @@ public record LoginRequest(
     [Required] string Password
 );
 
+public record UpdateDisplayNameRequest(
+    [Required, MinLength(3), MaxLength(50)] string DisplayName
+);
+
 public record AuthResponse(
     string DisplayName,
     string Email,

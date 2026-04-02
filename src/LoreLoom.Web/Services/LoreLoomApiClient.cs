@@ -20,6 +20,9 @@ public class LoreLoomApiClient(HttpClient http)
     public async Task<AuthResponse?> LoginAsync(LoginRequest request)
         => await PostAsync<AuthResponse>("auth/login", request);
 
+    public async Task<AuthResponse?> UpdateDisplayNameAsync(UpdateDisplayNameRequest request)
+        => await PutAsync<AuthResponse>("auth/profile/display-name", request);
+
     // Characters
     public async Task<CharacterResponse?> CreateCharacterAsync(CreateCharacterRequest request)
         => await PostAsync<CharacterResponse>("characters", request);
@@ -78,6 +81,13 @@ public class LoreLoomApiClient(HttpClient http)
     private async Task<T?> PostAsync<T>(string path, object body)
     {
         var response = await http.PostAsJsonAsync(path, body, JsonOptions);
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadFromJsonAsync<T>(JsonOptions);
+    }
+
+    private async Task<T?> PutAsync<T>(string path, object body)
+    {
+        var response = await http.PutAsJsonAsync(path, body, JsonOptions);
         response.EnsureSuccessStatusCode();
         return await response.Content.ReadFromJsonAsync<T>(JsonOptions);
     }

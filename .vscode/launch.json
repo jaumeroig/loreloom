@@ -1,0 +1,9 @@
+{
+    "configurations": [
+        {
+            "name": "C#: Iniciar proyecto de inicio",
+            "type": "dotnet",
+            "request": "launch"
+        }
+    ]
+}

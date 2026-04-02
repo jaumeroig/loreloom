@@ -1,5 +1,6 @@
 @page "/profile"
 @inject AuthService Auth
+@inject LoreLoomApiClient Api
 @inject ISnackbar Snackbar
 
 <MudText Typo="Typo.h4" Class="mb-6">Profile</MudText>
@@ -9,9 +10,16 @@
         <MudCard Elevation="0" Class="glass-card">
             <MudCardContent Class="pa-5">
                 <MudText Typo="Typo.h6" Class="mb-4">Account</MudText>
-                <MudTextField Value="@Auth.DisplayName" Label="Nickname" ReadOnly="true"
+                <MudTextField @bind-Value="_displayName" Label="Nickname"
                               Variant="Variant.Outlined" Class="mb-4"
+                              Counter="50" MaxLength="50"
                               Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Person" />
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SaveNickname"
+                           Disabled="_savingNickname || _displayName == Auth.DisplayName"
+                           Class="mb-4" Style="border-radius:12px;">
+                    @if (_savingNickname) { <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" /> }
+                    Save Nickname
+                </MudButton>
                 <MudTextField Value="@Auth.Email" Label="Email" ReadOnly="true"
                               Variant="Variant.Outlined"
                               Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Email" />
@@ -47,10 +55,53 @@
 
 @code {
     private string _language = "English";
+    private string _displayName = "";
+    private bool _savingNickname;
 
     protected override void OnInitialized()
     {
         _language = Auth.Language;
+        _displayName = Auth.DisplayName ?? "";
+    }
+
+    private async Task SaveNickname()
+    {
+        var normalizedDisplayName = _displayName.Trim();
+
+        if (string.IsNullOrWhiteSpace(normalizedDisplayName))
+        {
+            Snackbar.Add("Nickname cannot be empty.", Severity.Warning);
+            return;
+        }
+
+        if (normalizedDisplayName.Length < 3)
+        {
+            Snackbar.Add("Nickname must be at least 3 characters.", Severity.Warning);
+            return;
+        }
+
+        _savingNickname = true;
+        try
+        {
+            var result = await Api.UpdateDisplayNameAsync(new UpdateDisplayNameRequest(normalizedDisplayName));
+            if (result is null)
+            {
+                Snackbar.Add("Could not update nickname.", Severity.Error);
+                return;
+            }
+
+            await Auth.UpdateSessionAsync(result);
+            _displayName = result.DisplayName;
+            Snackbar.Add("Nickname updated.", Severity.Success);
+        }
+        catch (HttpRequestException ex)
+        {
+            Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _savingNickname = false;
+        }
     }
 
     private async Task SavePreferences()
