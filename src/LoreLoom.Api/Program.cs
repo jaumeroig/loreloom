@@ -68,7 +68,14 @@ builder.Services.AddScoped<TurnManager>();
 builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection(JwtOptions.SectionName));
 builder.Services.AddSingleton<JwtService>();
 
-// Email
+// Email — auto-set BaseUrl from Azure WEBSITE_HOSTNAME if not explicitly configured
+var emailBaseUrl = builder.Configuration["Email:BaseUrl"];
+if (string.IsNullOrWhiteSpace(emailBaseUrl) || emailBaseUrl.StartsWith("http://localhost"))
+{
+    var websiteHostname = Environment.GetEnvironmentVariable("WEBSITE_HOSTNAME");
+    if (!string.IsNullOrWhiteSpace(websiteHostname))
+        builder.Configuration["Email:BaseUrl"] = $"https://{websiteHostname}";
+}
 builder.Services.Configure<EmailOptions>(builder.Configuration.GetSection(EmailOptions.SectionName));
 builder.Services.AddScoped<IEmailService, EmailService>();
 
