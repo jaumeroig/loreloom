@@ -4,6 +4,7 @@
 @inject NavigationManager Nav
 @inject ISnackbar Snackbar
 @inject IAppTextLocalizer T
+@inject IJSRuntime JS
 @implements IDisposable
 
 @if (_game is null)
@@ -142,6 +143,8 @@
     private bool _sending;
     private Timer? _pollTimer;
     private ElementReference _historyDiv;
+    private int _lastTurnCount;
+    private bool _shouldScroll;
 
     private bool IsMyTurn => _game?.Players.FirstOrDefault(p => p.IsCurrentTurn)?.Name == Auth.DisplayName;
     private string CurrentTurnPlayer => _game?.Players.FirstOrDefault(p => p.IsCurrentTurn)?.Name ?? "...";
@@ -149,6 +152,7 @@
     protected override async Task OnInitializedAsync()
     {
         await RefreshAsync();
+        _shouldScroll = true;
 
         _pollTimer = new Timer(async _ =>
         {
@@ -157,12 +161,27 @@
         }, null, 3000, 3000);
     }
 
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (_shouldScroll)
+        {
+            _shouldScroll = false;
+            await JS.InvokeVoidAsync("eval", "document.querySelector('.turn-history')?.scrollTo(0, document.querySelector('.turn-history').scrollHeight)");
+        }
+    }
+
     private async Task RefreshAsync()
     {
         try
         {
             _game = await Api.GetGameAsync(GameId);
             _turns = await Api.GetTurnsAsync(GameId);
+
+            if (_turns.Count != _lastTurnCount)
+            {
+                _lastTurnCount = _turns.Count;
+                _shouldScroll = true;
+            }
 
             if (_game?.Status == GameStatus.Finished)
                 _pollTimer?.Dispose();
