@@ -81,9 +81,11 @@ public class EmailService(IOptions<EmailOptions> options, ILogger<EmailService> 
         message.Body = new TextPart("html") { Text = htmlBody };
 
         using var client = new SmtpClient();
-        var secureSocketOptions = _options.EnableSsl
-            ? SecureSocketOptions.StartTls
-            : SecureSocketOptions.None;
+        var secureSocketOptions = _options.SmtpPort == 465
+            ? SecureSocketOptions.SslOnConnect
+            : _options.EnableSsl
+                ? SecureSocketOptions.StartTls
+                : SecureSocketOptions.None;
 
         await client.ConnectAsync(_options.SmtpHost, _options.SmtpPort, secureSocketOptions);
 
